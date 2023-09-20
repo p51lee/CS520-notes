@@ -1,0 +1,241 @@
+% !TEX root = main.tex
+
+\chapter{Predicate Logic}
+
+\section{Motivation or objective}
+
+\begin{enumerate}[label=\protect\circled{\arabic*}]
+  \item
+    Learn four key tools in PL that will be used throughout this course.
+    \begin{enumerate}[label=(\roman*)]
+      \item Abstract Syntax
+      \item Denotational Semantics
+      \item Inference Rule
+      \item Binding
+    \end{enumerate}
+  \item Learn the basics of predicate logic (or first-order logic)
+  \item We plan to go ghrough some of (i) - (iv) twice, first using integer
+    expressions and then using predicate logic.
+\end{enumerate}
+
+\section{Integer expressions}
+
+\begin{enumerate}[label=\protect\circled{\arabic*}]
+  \item
+    How to analyze integer expresion found in logic and programming languages
+    mathematically? We will first have to define the syntax and teh semantics
+    for them.
+  \item
+    Examples: $x + 3 \times y$ , $x \div 2 + x \times x$ ...
+  \item
+    We also want to develop mathematical tools to reason about or manipulate
+    integer expressions.
+\end{enumerate}
+
+\section{Abstract syntax and initial algebra}
+
+\begin{enumerate}[label=\protect\circled{\arabic*}]
+  \item Abstract Syntax: \\
+    Specification of \emph{abstract phrases}
+    \footnote{
+      vague words, but will be made rigorous when we define initial algebra.
+    }
+    in a formal language, such as the language of integer expressions and
+    predicate logic.
+  \item
+    Typically, we use \emph{abstract grammar}
+    \footnote{
+      \begin{minipage}[t]{\textwidth}
+      Here is the explanation of the word with an enumerated list:
+      \begin{enumerate}[label=(\roman*)]
+        \item grammar without any concern on parsing ofr surface syntax.
+        \item In this case, parse trees in the grammar are abstract phrases.
+      \end{enumerate}
+      \end{minipage}
+    }
+    to describe abstract syntax.
+  \item Abstract grammar for integer expressions:
+    \setlength{\grammarindent}{6em} % increase separation between LHS/RHS
+    \begin{center}
+    \begin{minipage}{0.4\textwidth}
+    \begin{grammar}
+    <intexp> ::= 0 | 1 | 2 ...
+    \alt <var>
+    \alt - <intexp>
+    \alt <intexp> $+$ <intexp>
+    \alt <intexp> $-$ <intexp>
+    \alt <intexp> $\times$ <intexp>
+    \alt <intexp> $\div$ <intexp>
+    \end{grammar}
+    \end{minipage}
+    \end{center}
+    (abstract) integer expressions are finite deriviation trees in this grammar.
+    For instance,
+
+    \begin{center}
+    \begin{tikzpicture}[
+      level 1/.style={sibling distance=10mm, level distance=10mm},
+      level 2/.style={sibling distance=10mm},
+      level 3/.style={sibling distance=5mm}]
+
+      \node {+}
+        child {node {$\times$} }
+        child {node {$\times$}
+          child {node {3}}
+          child {node {y}}
+        };
+    \end{tikzpicture}
+    $\qquad$
+    \begin{tikzpicture}[
+      level 1/.style={sibling distance=20mm, level distance=10mm},
+      level 2/.style={sibling distance=10mm},
+      level 3/.style={sibling distance=5mm}]
+
+      \node {+}
+        child {node {$\div$}
+          child {node {x}}
+          child {node {2}}
+        }
+        child {node {$-$}
+          child {node {x}}
+          child {node {x}}
+        };
+    \end{tikzpicture}
+    \end{center}
+
+    Note that infinite trees are not included.
+
+  \item
+    A more accurate view is to view abstract syntax as an inital algebra. This
+    view will help us to see shy we can define various operations on abstract
+    phrases or integer expressions using syntax-directed definition.
+
+  \item
+    \emph{Algebra} $A$ $\cdots$ Set with operations and constraints. \\
+    \emph{Signature} $S$ $\cdots$ Type of an algebra.
+
+    \begin{exampletab}
+      \begin{enumerate}[label=(\roman*)]
+        \item TODO
+        \item TODO
+      \end{enumerate}
+    \end{exampletab}
+
+  \item
+    \emph{Algebra homomorphism} $\cdots$ map between algebras that
+    preserves constants and operations.
+    \begin{align*}
+      S &= \prths{
+      t,\; c_1 : t,\; \cdots ,\; c_n : t ,\;
+      \textrm{op}_1 : t \times \cdots \times t \rightarrow t ,\; \cdots
+      \textrm{op}_m : t \times \cdots \times t \rightarrow t
+      }
+      \\
+      A_0 &= \prths{
+      \mathcal{U}_0\footnotemark,\;
+      c_1^0 \in \mathcal{U} ,\;
+      \cdots ,\;
+      c_n^0 \in \mathcal{U} ,\;
+      \textrm{op}_1^0 :
+      \mathcal{U} \times \cdots \times \mathcal{U} \rightarrow \mathcal{U},\; \cdots
+      \textrm{op}_m^0 :
+      \mathcal{U} \times \cdots \times \mathcal{U} \rightarrow \mathcal{U}
+      }
+      \\
+      A_1 &= \prths{
+      \mathcal{U}_1,\;
+      c_1^1 \in \mathcal{U} ,\;
+      \cdots ,\;
+      c_n^1 \in \mathcal{U} ,\;
+      \textrm{op}_1^1 :
+      \mathcal{U} \times \cdots \times \mathcal{U} \rightarrow \mathcal{U},\; \cdots
+      \textrm{op}_m^1 :
+      \mathcal{U} \times \cdots \times \mathcal{U} \rightarrow \mathcal{U}
+      }
+    \end{align*}
+    \footnotetext{notation: $\abs{A_0}$}
+
+    $f \in \mathcal{U}_0 \rightarrow \mathcal{U}_1$ is a \emph{homomorphism} if
+    \begin{enumerate}[label=(\roman*)]
+      \item $f \prths{c_i^0} = c_i^1$ for all $i$.
+      \item $f \prths{\textrm{op}_i^0 \prths{x_1,\; \cdots ,\; x_k}} =
+        \textrm{op}_i^1 \prths{x_1,\; \cdots ,\; x_k}$ for all $i$.
+    \end{enumerate}
+
+  \item
+    \emph{Initial algebra of a signature} $S$
+    \begin{enumerate}[label=(\roman*)]
+      \item
+        An algebra $A$ of the signature $S$ s.t. for all algebras $A^\prime$ of
+        the same signature, there is a \emph{unique} homomorphism $f$ from $A$
+        to $A^\prime$.
+      \item
+        $A_{\textrm{grammar}}$ is initial.
+      \item
+        Formally, an abstract syntax fixes a signature and it denotes an initial
+        algebra of the signature. An abstract phrase is an element of that
+        algebra.
+    \end{enumerate}
+    \begin{exercise}
+      Prove that $A_{\textrm{grammar}}$ is indeed an initial algebra.
+    \end{exercise}
+    \begin{exercise}
+      Let $A_0$ and $A_0$ be initial algebras of the same signature $S$. Then,
+      there are homomorphisms $f \in \abs{A_0} \rightarrow \abs{A_1}$ and
+      $g \in \abs{A_1} \rightarrow \abs{A_0}$ s.t. $f \circ g = \textrm{id}$ and
+      $g \circ f = \textrm{id}$.\\
+      This means that all initial algebrras of $S$ are essentially the same,
+      i.e. isomorphic. Prove this fact.
+    \end{exercise}
+
+\end{enumerate}
+
+\section{Syntax-directed definition and denotational semantics}
+\begin{enumerate}[label=\protect\circled{\arabic*}]
+  \item
+    Definition of a map on integer expressions using a form of induction and
+    case analysis.
+  \item
+    $
+    \textrm{FV (Free Variables)}: \chevrons{intexp} \rightarrow 2^{\chevrons{Var}}
+    $
+    \begin{align*}
+      \fv{e\footnotemark} &= V \footnotemark \\
+      \fv{c\footnotemark} &= \phi \\
+      \fv{x\footnotemark} &= \braces{x} \\
+      \fv{-e} &= \fv{e} \\
+      \fv{e_1 \; \substack{+\\-\\\times\\\div} \; e_2} &= \fv{e_1} \cup \fv{e_2}
+    \end{align*}
+    \addtocounter{footnote}{-3} \footnotetext{integer expression}
+    \stepcounter{footnote} \footnotetext{Set of free variables in $e$}
+    \stepcounter{footnote} \footnotetext{constant}
+    \stepcounter{footnote} \footnotetext{variable} 
+
+  \item
+    Two features: case analysis, recursive calls on subphrases.
+
+  \item
+    $
+      \bbrackets{-} \in \chevrons{intexp} \; \rightarrow \;
+      \Sigma \rightarrow \z
+      \where \Sigma = \chevrons{var} \rightarrow \z , \textrm{ a set of states }
+      \sigma.
+    $
+    \begin{align*}
+      \bbrackets{c}\sigma &= c \\
+      \bbrackets{x}\sigma &= \sigma\prths{x} \\
+      \bbrackets{-e}\sigma &= -\prths{\bbrackets{e}\sigma} \\
+      \bbrackets{
+        e_1 \;\substack{+\\-\\\times\\\div}\; e_2
+      }\sigma &= \prths{\bbrackets{e_1}\sigma}
+      \;\substack{+\\-\\\times\\\div}\;
+      \prths{\bbrackets{e_1}\sigma} \footnotemark
+    \end{align*}
+    \footnotetext{some special treatment of the divide-by-zero case}
+    Intuitively, $\bbrackets{-}$ maps tress to mathematical functions in a
+    synatax-directed (also called compositional) way. Such a compositional
+    mapping from syntactic entities to mathematical entities is called
+    \emph{denotational semantics}.
+
+\end{enumerate}
+

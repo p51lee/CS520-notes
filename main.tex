@@ -1,0 +1,92 @@
+% \documentclass[12pt]{book}
+\documentclass[ebook,9pt,oneside,openany]{memoir}
+
+\usepackage[paperwidth=6in, paperheight=9in, margin=0.5in]{geometry}
+% \usepackage[paperwidth=148.5mm, paperheight=210mm, margin=10mm]{geometry}
+\usepackage[english]{babel}
+\usepackage{graphicx}
+\usepackage{framed}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{enumerate}
+\usepackage{kotex}
+\usepackage{setspace}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{bbm}
+\usepackage{lipsum}
+\usepackage{tikz}
+\usepackage{enumitem}
+\usepackage{syntax}
+\usepackage{changepage}
+\usepackage{mathrsfs}
+\usepackage{stmaryrd}
+
+\newtheoremstyle{tabstyle}
+  {\topsep} % Space above
+  {\topsep} % Space below
+  {\normalfont} % Body font
+  {} % Indent amount
+  {\bfseries} % Theorem head font
+  {.} % Punctuation after theorem head
+  {.5em} % Space after theorem head
+  {} % Theorem head spec (can be left empty, meaning ‘normal’)
+\newtheorem{theorem}{Theorem}
+\newtheorem{corollary}{Corollary}
+\newtheorem{property}{Property}
+\newtheorem*{lemma}{Lemma}
+\newtheorem*{definition}{Definition}
+\newtheorem{note}{Note}
+
+\theoremstyle{tabstyle}
+\newtheorem*{exercise}{Exercise}
+\newtheorem*{example}{Example}
+\newenvironment{exampletab}
+  {\begin{example}\;\begin{adjustwidth}{4em}{0em}}
+  {\end{adjustwidth}\end{example}}
+\newenvironment{exercisetab}
+  {\begin{exercise}\;\begin{adjustwidth}{4em}{0em}}
+  {\end{adjustwidth}\end{exercise}}
+
+
+\newcommand*\circled[1]{\tikz[baseline=(char.base)]{
+            \node[shape=circle,draw,inner sep=2pt] (char) {#1};}}
+
+\newcommand{\<}{\langle}
+\renewcommand{\>}{\rangle}
+\newcommand{\abs}[1]{\left\vert #1 \right\vert}
+\newcommand{\prths}[1]{\left( #1 \right)}
+\newcommand{\braces}[1]{\left\{ #1 \right\}}
+\newcommand{\brackets}[1]{\left[ #1 \right]}
+\newcommand{\bbrackets}[1]{\left\llbracket #1 \right\rrbracket}
+\newcommand{\chevrons}[1]{\left\< #1 \right\>}
+\newcommand{\set}[2]{\left\{ #1 \; \middle\vert \; #2 \right\}}
+
+\newcommand{\z}{\mathbb{Z}}
+\newcommand{\fv}[1]{\textrm{FV}\prths{ #1 }}
+\newcommand{\where}{\quad \textrm{ where } \;}
+
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+
+\title{Theory of Programming Languages}
+\author{Your Name Here}
+\date{\today}
+
+\OnehalfSpacing
+\counterwithin*{footnote}{page}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+\input{chapter1.tex}
+\input{chapter2.tex}
+\input{chapter3.tex}
+
+\end{document}
+
