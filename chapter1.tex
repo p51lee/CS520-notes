@@ -4,23 +4,23 @@
 
 \section{Motivation or objective}
 
-\begin{enumerate}[label=\protect\circled{\arabic*}]
+\begin{enumcirc}
   \item
     Learn four key tools in PL that will be used throughout this course.
-    \begin{enumerate}[label=(\roman*)]
+    \begin{enumrm}
       \item Abstract Syntax
       \item Denotational Semantics
       \item Inference Rule
       \item Binding
-    \end{enumerate}
+    \end{enumrm}
   \item Learn the basics of predicate logic (or first-order logic)
   \item We plan to go ghrough some of (i) - (iv) twice, first using integer
     expressions and then using predicate logic.
-\end{enumerate}
+\end{enumcirc}
 
 \section{Integer expressions}
 
-\begin{enumerate}[label=\protect\circled{\arabic*}]
+\begin{enumcirc}
   \item
     How to analyze integer expresion found in logic and programming languages
     mathematically? We will first have to define the syntax and teh semantics
@@ -30,11 +30,11 @@
   \item
     We also want to develop mathematical tools to reason about or manipulate
     integer expressions.
-\end{enumerate}
+\end{enumcirc}
 
 \section{Abstract syntax and initial algebra}
 
-\begin{enumerate}[label=\protect\circled{\arabic*}]
+\begin{enumcirc}
   \item Abstract Syntax: \\
     Specification of \emph{abstract phrases}
     \footnote{
@@ -47,10 +47,10 @@
     \footnote{
       \begin{minipage}[t]{\textwidth}
       Here is the explanation of the word with an enumerated list:
-      \begin{enumerate}[label=(\roman*)]
+      \begin{enumrm}
         \item grammar without any concern on parsing ofr surface syntax.
         \item In this case, parse trees in the grammar are abstract phrases.
-      \end{enumerate}
+      \end{enumrm}
       \end{minipage}
     }
     to describe abstract syntax.
@@ -115,10 +115,10 @@
     \emph{Signature} $S$ $\cdots$ Type of an algebra.
 
     \begin{exampletab}
-      \begin{enumerate}[label=(\roman*)]
+      \begin{enumrm}
         \item TODO
         \item TODO
-      \end{enumerate}
+      \end{enumrm}
     \end{exampletab}
 
   \item
@@ -156,15 +156,15 @@
     \footnotetext{notation: $\abs{A_0}$}
 
     $f \in \mathcal{U}_0 \rightarrow \mathcal{U}_1$ is a \emph{homomorphism} if
-    \begin{enumerate}[label=(\roman*)]
+    \begin{enumrm}
       \item $f \prths{c_i^0} = c_i^1$ for all $i$.
       \item $f \prths{\textrm{op}_i^0 \prths{x_1,\; \cdots ,\; x_k}} =
         \textrm{op}_i^1 \prths{x_1,\; \cdots ,\; x_k}$ for all $i$.
-    \end{enumerate}
+    \end{enumrm}
 
   \item
     \emph{Initial algebra of a signature} $S$
-    \begin{enumerate}[label=(\roman*)]
+    \begin{enumrm}
       \item
         An algebra $A$ of the signature $S$ s.t. for all algebras $A^\prime$ of
         the same signature, there is a \emph{unique} homomorphism $f$ from $A$
@@ -175,7 +175,7 @@
         Formally, an abstract syntax fixes a signature and it denotes an initial
         algebra of the signature. An abstract phrase is an element of that
         algebra.
-    \end{enumerate}
+    \end{enumrm}
     \begin{exercise}
       Prove that $A_{\textrm{grammar}}$ is indeed an initial algebra.
     \end{exercise}
@@ -188,10 +188,10 @@
       i.e. isomorphic. Prove this fact.
     \end{exercise}
 
-\end{enumerate}
+\end{enumcirc}
 
 \section{Syntax-directed definition and denotational semantics}
-\begin{enumerate}[label=\protect\circled{\arabic*}]
+\begin{enumcirc}
   \item
     Definition of a map on integer expressions using a form of induction and
     case analysis.
@@ -237,5 +237,5 @@
     mapping from syntactic entities to mathematical entities is called
     \emph{denotational semantics}.
 
-\end{enumerate}
+\end{enumcirc}
 

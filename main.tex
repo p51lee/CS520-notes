@@ -51,6 +51,13 @@
   {\begin{exercise}\;\begin{adjustwidth}{4em}{0em}}
   {\end{adjustwidth}\end{exercise}}
 
+\newenvironment{enumcirc}
+  {\begin{enumerate}[label=\protect\circled{\arabic*}]}
+  {\end{enumerate}}
+\newenvironment{enumrm}
+  {\begin{enumerate}[label=(\roman*)]}
+  {\end{enumerate}}
+
 
 \newcommand*\circled[1]{\tikz[baseline=(char.base)]{
             \node[shape=circle,draw,inner sep=2pt] (char) {#1};}}
