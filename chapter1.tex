@@ -5,237 +5,901 @@
 \section{Motivation or objective}
 
 \begin{enumcirc}
-  \item
-    Learn four key tools in PL that will be used throughout this course.
-    \begin{enumrm}
-      \item Abstract Syntax
-      \item Denotational Semantics
-      \item Inference Rule
-      \item Binding
-    \end{enumrm}
-  \item Learn the basics of predicate logic (or first-order logic)
-  \item We plan to go ghrough some of (i) - (iv) twice, first using integer
-    expressions and then using predicate logic.
+	%
+	\item
+	Learn four key tools in PL that will be used throughout this course.
+	%
+	\begin{enumrm}
+		%
+		\item Abstract Syntax
+		%
+		\item Denotational Semantics
+		%
+		\item Inference Rule
+		%
+		\item Binding
+		%
+	\end{enumrm}
+	%
+	\item
+	Learn the basics of predicate logic (or first-order logic)
+	%
+	\item
+	We plan to go through some of (i) - (iv) twice, first using integer expressions
+	and then using predicate logic.
+	%
 \end{enumcirc}
 
 \section{Integer expressions}
 
 \begin{enumcirc}
-  \item
-    How to analyze integer expresion found in logic and programming languages
-    mathematically? We will first have to define the syntax and teh semantics
-    for them.
-  \item
-    Examples: $x + 3 \times y$ , $x \div 2 + x \times x$ ...
-  \item
-    We also want to develop mathematical tools to reason about or manipulate
-    integer expressions.
+	%
+	\item How to analyze integer expression found in logic and programming languages
+	mathematically?
+	%
+	We will first have to define the syntax and the semantics for them.
+	%
+	\item Examples: $x + 3 \times y$, $x \div 2 + x \times x$ ...
+	%
+	\item We also want to develop mathematical tools to reason about or manipulate
+	integer expressions.
+	%
 \end{enumcirc}
 
 \section{Abstract syntax and initial algebra}
 
 \begin{enumcirc}
-  \item Abstract Syntax: \\
-    Specification of \emph{abstract phrases}
-    \footnote{
-      vague words, but will be made rigorous when we define initial algebra.
-    }
-    in a formal language, such as the language of integer expressions and
-    predicate logic.
-  \item
-    Typically, we use \emph{abstract grammar}
-    \footnote{
-      \begin{minipage}[t]{\textwidth}
-      Here is the explanation of the word with an enumerated list:
-      \begin{enumrm}
-        \item grammar without any concern on parsing ofr surface syntax.
-        \item In this case, parse trees in the grammar are abstract phrases.
-      \end{enumrm}
-      \end{minipage}
-    }
-    to describe abstract syntax.
-  \item Abstract grammar for integer expressions:
-    \setlength{\grammarindent}{6em} % increase separation between LHS/RHS
-    \begin{center}
-    \begin{minipage}{0.4\textwidth}
-    \begin{grammar}
-    <intexp> ::= 0 | 1 | 2 ...
-    \alt <var>
-    \alt - <intexp>
-    \alt <intexp> $+$ <intexp>
-    \alt <intexp> $-$ <intexp>
-    \alt <intexp> $\times$ <intexp>
-    \alt <intexp> $\div$ <intexp>
-    \end{grammar}
-    \end{minipage}
-    \end{center}
-    (abstract) integer expressions are finite deriviation trees in this grammar.
-    For instance,
+	%
+	\item
+	Abstract Syntax: \\
+	%
+	Specification of \emph{abstract phrases}\footnote{ vague words, but will be
+		made rigorous when we define initial algebra. }
+	%
+	in a formal language,
+	%
+	such as the language of integer expressions and predicate logic.
+	%
+	\item
+	Typically, we use \emph{abstract grammar}\footnote{
+		\begin{minipage}[t]{\textwidth}
+			Here is the explanation of the word with an enumerated list:
+			\begin{enumrm}
+				\item
+				grammar without any concern on parsing for surface syntax.
+				%
+				\item
+				In this case, parse trees in the grammar are abstract phrases.
+			\end{enumrm}
+		\end{minipage}
+	}
+	%
+	to describe abstract syntax.
+	%
+	\item Abstract grammar for integer expressions: \setlength{\grammarindent}{6em} % increase separation between LHS/RHS
+	%
+	\begin{center}
+		\begin{minipage}{0.4\textwidth}
+			\begin{grammar}
+				<intexp> ::= 0 | 1 | 2 ...
+				\alt <var>
+				\alt - <intexp>
+				\alt <intexp> $+$ <intexp>
+				\alt <intexp> $-$ <intexp>
+				\alt <intexp> $\times$ <intexp>
+				\alt <intexp> $\div$ <intexp>
+			\end{grammar}
+		\end{minipage}
+	\end{center}
+	%
+	(abstract) integer expressions are finite derivation trees in this grammar.
+	%
+	For instance,
+	%
+	\begin{center}
+		\begin{tikzpicture}[
+				level 1/.style={sibling distance=10mm, level distance=10mm},
+				level 2/.style={sibling distance=10mm},
+				level 3/.style={sibling distance=5mm}]
+			\node {+}
+			child {node {$\times$} }
+			child {node {$\times$}
+					child {node {3}}
+					child {node {y}}
+				};
+		\end{tikzpicture}
+		%
+		$\qquad$
+		%
+		\begin{tikzpicture}[
+				level 1/.style={sibling distance=20mm, level distance=10mm},
+				level 2/.style={sibling distance=10mm},
+				level 3/.style={sibling distance=5mm}]
 
-    \begin{center}
-    \begin{tikzpicture}[
-      level 1/.style={sibling distance=10mm, level distance=10mm},
-      level 2/.style={sibling distance=10mm},
-      level 3/.style={sibling distance=5mm}]
+			\node {+}
+			child {node {$\div$}
+					child {node {x}}
+					child {node {2}}
+				}
+			child {node {$-$}
+					child {node {x}}
+					child {node {x}}
+				};
+		\end{tikzpicture}
+	\end{center}
+	%
+	Note that infinite trees are not included.
+	%
+	\item
+	A more accurate view is to view abstract syntax as an initial algebra.
+	%
+	This view will help us to see shy we can define various operations on abstract
+	phrases or integer expressions using syntax-directed definition.
 
-      \node {+}
-        child {node {$\times$} }
-        child {node {$\times$}
-          child {node {3}}
-          child {node {y}}
-        };
-    \end{tikzpicture}
-    $\qquad$
-    \begin{tikzpicture}[
-      level 1/.style={sibling distance=20mm, level distance=10mm},
-      level 2/.style={sibling distance=10mm},
-      level 3/.style={sibling distance=5mm}]
+	\item
+	%
+	\emph{Algebra} $A$ $\cdots$ Set with operations and constraints. \\
+	%
+	\emph{Signature} $S$ $\cdots$ Type of an algebra.
+	%
+	\begin{exampletab}
+		%
+		$\subsc{S}{group} = \prths{t,\; \textrm{id}: t ,\; \textrm{o} : t \times t \rightarrow t,\; \prths{-}^{-1} : t \rightarrow t}$
+		%
+		\begin{align*}
+			A_0 & = \prths{\Z,\; 0,\; +,\; -}                         \\
+			A_1 & = \prths{\R_{>0} ,\; 1,\; \times,\; \prths{-}^{-1}}
+		\end{align*}
+		%
+		$A_0: \subsc{S}{group}$ is a group with integers and addition.
+		%
+		$A_1: \subsc{S}{group}$ is a group with positive reals and multiplication.
+		%
+	\end{exampletab}
+	%
+	\item
+	\emph{Algebra homomorphism} $\cdots$ map between algebras that preserves
+	constants and operations.
+	%
+	\begin{align*}
+		S   & = \prths{
+			t,\; c_1 : t,\; \cdots ,\; c_n : t ,\;
+			\textrm{op}_1 : t \times \cdots \times t \rightarrow t ,\; \cdots
+			\textrm{op}_m : t \times \cdots \times t \rightarrow t
+		}
+		\\
+		A_0 & = \prths{
+			\mathcal{U}_0\footnotemark,\;
+			c_1^0 \in \mathcal{U} ,\;
+			\cdots ,\;
+			c_n^0 \in \mathcal{U} ,\;
+			\textrm{op}_1^0 :
+			\mathcal{U} \times \cdots \times \mathcal{U} \rightarrow \mathcal{U},\; \cdots
+			\textrm{op}_m^0 :
+			\mathcal{U} \times \cdots \times \mathcal{U} \rightarrow \mathcal{U}
+		}
+		\\
+		A_1 & = \prths{
+			\mathcal{U}_1,\;
+			c_1^1 \in \mathcal{U} ,\;
+			\cdots ,\;
+			c_n^1 \in \mathcal{U} ,\;
+			\textrm{op}_1^1 :
+			\mathcal{U} \times \cdots \times \mathcal{U} \rightarrow \mathcal{U},\; \cdots
+			\textrm{op}_m^1 :
+			\mathcal{U} \times \cdots \times \mathcal{U} \rightarrow \mathcal{U}
+		}
+	\end{align*}
+	\leavevmode
+	\footnotetext{notation: $\abs{A_0}$}
+	%
+	$f \in \mathcal{U}_0 \rightarrow \mathcal{U}_1$ is a \emph{homomorphism} if
+	%
+	\begin{enumrm}
+		\item $f \prths{c_i^0} = c_i^1$ for all $i$.
+		\item $f \prths{\textrm{op}_i^0 \prths{x_1,\; \cdots ,\; x_k}} =
+			\textrm{op}_i^1 \prths{x_1,\; \cdots ,\; x_k}$ for all $i$.
+	\end{enumrm}
 
-      \node {+}
-        child {node {$\div$}
-          child {node {x}}
-          child {node {2}}
-        }
-        child {node {$-$}
-          child {node {x}}
-          child {node {x}}
-        };
-    \end{tikzpicture}
-    \end{center}
+	\item
+	\emph{Initial algebra of a signature} $S$
+	%
+	\begin{enumrm}
+		%
+		\item An algebra $A$ of the signature $S$ s.t. for all algebras $A^\prime$ of the
+		same signature, there is a \emph{unique} homomorphism $f$ from $A$ to
+		$A^\prime$.
+		%
+		\item
+		$A_{\textrm{grammar}}$ is initial.
+		%
+		\item
+		Formally, an abstract syntax fixes a signature and it denotes an initial
+		algebra of the signature.
+		%
+		An abstract phrase is an element of that algebra.
+		%
+	\end{enumrm}
 
-    Note that infinite trees are not included.
+	\begin{exercise}
+		Prove that $A_{\textrm{grammar}}$ is indeed an initial algebra.
+	\end{exercise}
 
-  \item
-    A more accurate view is to view abstract syntax as an inital algebra. This
-    view will help us to see shy we can define various operations on abstract
-    phrases or integer expressions using syntax-directed definition.
-
-  \item
-    \emph{Algebra} $A$ $\cdots$ Set with operations and constraints. \\
-    \emph{Signature} $S$ $\cdots$ Type of an algebra.
-
-    \begin{exampletab}
-      \begin{enumrm}
-        \item TODO
-        \item TODO
-      \end{enumrm}
-    \end{exampletab}
-
-  \item
-    \emph{Algebra homomorphism} $\cdots$ map between algebras that
-    preserves constants and operations.
-    \begin{align*}
-      S &= \prths{
-      t,\; c_1 : t,\; \cdots ,\; c_n : t ,\;
-      \textrm{op}_1 : t \times \cdots \times t \rightarrow t ,\; \cdots
-      \textrm{op}_m : t \times \cdots \times t \rightarrow t
-      }
-      \\
-      A_0 &= \prths{
-      \mathcal{U}_0\footnotemark,\;
-      c_1^0 \in \mathcal{U} ,\;
-      \cdots ,\;
-      c_n^0 \in \mathcal{U} ,\;
-      \textrm{op}_1^0 :
-      \mathcal{U} \times \cdots \times \mathcal{U} \rightarrow \mathcal{U},\; \cdots
-      \textrm{op}_m^0 :
-      \mathcal{U} \times \cdots \times \mathcal{U} \rightarrow \mathcal{U}
-      }
-      \\
-      A_1 &= \prths{
-      \mathcal{U}_1,\;
-      c_1^1 \in \mathcal{U} ,\;
-      \cdots ,\;
-      c_n^1 \in \mathcal{U} ,\;
-      \textrm{op}_1^1 :
-      \mathcal{U} \times \cdots \times \mathcal{U} \rightarrow \mathcal{U},\; \cdots
-      \textrm{op}_m^1 :
-      \mathcal{U} \times \cdots \times \mathcal{U} \rightarrow \mathcal{U}
-      }
-    \end{align*}
-    \footnotetext{notation: $\abs{A_0}$}
-
-    $f \in \mathcal{U}_0 \rightarrow \mathcal{U}_1$ is a \emph{homomorphism} if
-    \begin{enumrm}
-      \item $f \prths{c_i^0} = c_i^1$ for all $i$.
-      \item $f \prths{\textrm{op}_i^0 \prths{x_1,\; \cdots ,\; x_k}} =
-        \textrm{op}_i^1 \prths{x_1,\; \cdots ,\; x_k}$ for all $i$.
-    \end{enumrm}
-
-  \item
-    \emph{Initial algebra of a signature} $S$
-    \begin{enumrm}
-      \item
-        An algebra $A$ of the signature $S$ s.t. for all algebras $A^\prime$ of
-        the same signature, there is a \emph{unique} homomorphism $f$ from $A$
-        to $A^\prime$.
-      \item
-        $A_{\textrm{grammar}}$ is initial.
-      \item
-        Formally, an abstract syntax fixes a signature and it denotes an initial
-        algebra of the signature. An abstract phrase is an element of that
-        algebra.
-    \end{enumrm}
-    \begin{exercise}
-      Prove that $A_{\textrm{grammar}}$ is indeed an initial algebra.
-    \end{exercise}
-    \begin{exercise}
-      Let $A_0$ and $A_0$ be initial algebras of the same signature $S$. Then,
-      there are homomorphisms $f \in \abs{A_0} \rightarrow \abs{A_1}$ and
-      $g \in \abs{A_1} \rightarrow \abs{A_0}$ s.t. $f \circ g = \textrm{id}$ and
-      $g \circ f = \textrm{id}$.\\
-      This means that all initial algebrras of $S$ are essentially the same,
-      i.e. isomorphic. Prove this fact.
-    \end{exercise}
+	\begin{exercise}
+		Let $A_0$ and $A_0$ be initial algebras of the same signature $S$.
+		%
+		Then, there are homomorphisms
+		%
+		$f \in \abs{A_0} \rightarrow \abs{A_1}$ and
+		%
+		$g \in \abs{A_1} \rightarrow \abs{A_0}$ s.t. $f \circ g = \textrm{id}$ and
+		%
+		$g \circ f = \textrm{id}$.
+		%
+		This means that all initial algebras of $S$ are essentially the same, i.e.
+		isomorphic. Prove this fact.
+	\end{exercise}
 
 \end{enumcirc}
 
 \section{Syntax-directed definition and denotational semantics}
+
 \begin{enumcirc}
-  \item
-    Definition of a map on integer expressions using a form of induction and
-    case analysis.
-  \item
-    $
-    \textrm{FV (Free Variables)}: \chevrons{intexp} \rightarrow 2^{\chevrons{Var}}
-    $
-    \begin{align*}
-      \fv{e\footnotemark} &= V \footnotemark \\
-      \fv{c\footnotemark} &= \phi \\
-      \fv{x\footnotemark} &= \braces{x} \\
-      \fv{-e} &= \fv{e} \\
-      \fv{e_1 \; \substack{+\\-\\\times\\\div} \; e_2} &= \fv{e_1} \cup \fv{e_2}
-    \end{align*}
-    \addtocounter{footnote}{-3} \footnotetext{integer expression}
-    \stepcounter{footnote} \footnotetext{Set of free variables in $e$}
-    \stepcounter{footnote} \footnotetext{constant}
-    \stepcounter{footnote} \footnotetext{variable} 
+	%
+	\item
+	Definition of a map on integer expressions using a form of induction and
+	case analysis.
+	%
+	\item
+	%
+	$ \textrm{FV (Free Variables)}: \chevrons{intexp} \rightarrow 2^{\chevrons{Var}} $
+	%
+	\begin{align*}
+		\fv{e\footnotemark} & = V \footnotemark \\
+		\fv{c\footnotemark} & = \phi            \\
+		\fv{x\footnotemark} & = \braces{x}      \\
+		\fv{-e}             & = \fv{e}          \\
+		\fv{e_1 \; \substack{+                  \\-\\\times\\\div} \; e_2} &= \fv{e_1} \cup \fv{e_2}
+	\end{align*}
+	\footnoteeqn[-3]{integer expression}
+	\footnoteeqn{Set of free variables in $e$}
+	\footnoteeqn{constant}
+	\footnoteeqn{variable}
+	%
+	\item
+	Two features: case analysis, recursive calls on subphrases.
+	%
+	\item
+	%
+	$ \bbrackets{-} \in \chevrons{intexp} \; \rightarrow \;
+		\Sigma \rightarrow \Z
+		\where \Sigma = \chevrons{var} \rightarrow \Z , \textrm{ a set of states }
+		\sigma. $
+	%
+	\begin{align*}
+		\bbrackets{c}\sigma  & = c                             \\
+		\bbrackets{x}\sigma  & = \sigma\prths{x}               \\
+		\bbrackets{-e}\sigma & = -\prths{\bbrackets{e}\sigma}  \\
+		\bbrackets{
+		e_1 \;\substack{+                                      \\-\\\times\\\div}\; e_2
+		}\sigma              & = \prths{\bbrackets{e_1}\sigma}
+		\;\substack{+                                          \\-\\\times\\\div}\;
+		\prths{\bbrackets{e_1}\sigma} \footnotemark
+	\end{align*}
+	\footnotetext{some special treatment of the divide-by-zero case}
+	%
+	Intuitively, $\bbrackets{-}$ maps tress to mathematical functions in a
+	syntax-directed (also called compositional) way.
+	%
+	Such a compositional mapping from syntactic entities to mathematical entities
+	is called \emph{denotational semantics}.
+	%
+	\item
+	In both cases, we are using the initiality of $\chevrons{intexp}$.
+	%
+	What are the target algebras in those cases?
+	%
+	\begin{enumrm}
+		%
+		\item
+		%
+		\begin{align*}
+			\abs{A_1}                  & = 2^{\chevrons{var}} \\
+			\underline{c^1}            & = \phi               \\
+			\underline{x^1}            & = \braces{x}         \\
+			\underline{-^1}\prths{X}   & = X                  \\
+			\underline{+^1}\prths{X,Y} & = X \cup Y
+		\end{align*}
+		%
+		$\underline{\times^1}$, $\underline{\div^1}$ and
+		$\underline{\textrm{rem}^1}$ are defined similarly.
+		%
+		\item
+		%
+		\begin{align*}
+			\abs{A_2}                                & = \Sigma \rightarrow \Z             \\
+			\underline{c^2}\prths{\sigma}            & = c                                 \\
+			\underline{x^2}\prths{\sigma}            & = \sigma\prths{x}                   \\
+			\underline{-^2}\prths{f}\prths{\sigma}   & = -f\prths{\sigma}                  \\
+			\underline{+^2}\prths{f,g}\prths{\sigma} & = f\prths{\sigma} + g\prths{\sigma}
+		\end{align*}
+		%
+		$\underline{\times^2}$, $\underline{\div^2}$ and
+		$\underline{\textrm{rem}^2}$ are defined similarly.
 
-  \item
-    Two features: case analysis, recursive calls on subphrases.
+	\end{enumrm}
+	%
+	\item
+	\begin{exercise}
+		\[
+			\delta \in \chevrons{var} \rightarrow \chevrons{intexp} \quad \textrm{(substitution)}
+		\]
+		Define $e/\delta$, the application of substitution $\delta$ to $e$.
+	\end{exercise}
+\end{enumcirc}
 
-  \item
-    $
-      \bbrackets{-} \in \chevrons{intexp} \; \rightarrow \;
-      \Sigma \rightarrow \z
-      \where \Sigma = \chevrons{var} \rightarrow \z , \textrm{ a set of states }
-      \sigma.
-    $
-    \begin{align*}
-      \bbrackets{c}\sigma &= c \\
-      \bbrackets{x}\sigma &= \sigma\prths{x} \\
-      \bbrackets{-e}\sigma &= -\prths{\bbrackets{e}\sigma} \\
-      \bbrackets{
-        e_1 \;\substack{+\\-\\\times\\\div}\; e_2
-      }\sigma &= \prths{\bbrackets{e_1}\sigma}
-      \;\substack{+\\-\\\times\\\div}\;
-      \prths{\bbrackets{e_1}\sigma} \footnotemark
-    \end{align*}
-    \footnotetext{some special treatment of the divide-by-zero case}
-    Intuitively, $\bbrackets{-}$ maps tress to mathematical functions in a
-    synatax-directed (also called compositional) way. Such a compositional
-    mapping from syntactic entities to mathematical entities is called
-    \emph{denotational semantics}.
+\section{Structural induction}
+\begin{enumcirc}
+	%
+	\item
+	We want to show that some property $\Psi$ holds for all integer expressions.
+	%
+	What should we do?
+	%
+	\item
+	Use induction on the structure of expressions.
+	%
+	That is, for each expression $e$, prove the property assuming that the property
+	holds for the subexpressions of $e$.
+	%
+	\begin{lemma}[Coincidence]
+		For every expression $e$ and states $\sigma$ and $\sigma^\prime$,
+		%
+		if $\sigma\prths{x} = \sigma^\prime\prths{x}$ for all $x \in \fv{e}$,
+		%
+		then $\bbrackets{e}\sigma = \bbrackets{e}\sigma^\prime$.
+	\end{lemma}
+	%
+	\begin{proof}
+		%
+		By structural induction.
+		%
+		\begin{itemize}
+			%
+			\item $e \equiv c$\;:\quad $\bbrackets{c}\sigma = c = \bbrackets{c}\sigma^\prime$.
+			      %
+			\item $e \equiv x$\;:\quad $\bbrackets{x}\sigma = \sigma\prths{x} =
+				      \sigma^\prime\prths{x} = \bbrackets{x}\sigma^\prime$ $\because x \in \fv{x}$.
+			      %
+			\item $e \equiv -e^\prime$\;:\quad $\bbrackets{-e^\prime}\sigma =
+				      -\bbrackets{e^\prime}\sigma = -\bbrackets{e^\prime}\sigma^\prime =
+				      \bbrackets{-e^\prime}\sigma^\prime$ $\because$ induction hypothesis.
+			      %
+			\item $e \equiv e_1 + e_2$\;:\quad $\bbrackets{e_1 + e_2}\sigma =
+				      \bbrackets{e_1}\sigma + \bbrackets{e_2}\sigma =
+				      \bbrackets{e_1}\sigma^\prime + \bbrackets{e_2}\sigma^\prime =
+				      \bbrackets{e_1 + e_2}\sigma^\prime$.
+			      %
+			\item $e_1 \substack{-\\\times\\\div} e_2$\;:\quad similar.
+			      %
+		\end{itemize}
+	\end{proof}
+
+	\begin{lemma}[Substitution]
+		\[
+			\sigma\prths{x} = \bbrackets{\delta\prths{x}}\sigma^\prime \quad \textrm{for all } x
+			\quad \Rightarrow \quad \bbrackets{e/\delta}\sigma^\prime = \bbrackets{e}\sigma
+		\]
+	\end{lemma}
+	\begin{proof}
+		By structural induction.
+	\end{proof}
+
+	Notation:
+	%
+	\begin{enumrm}
+		%
+		\item
+		$x_1 \rightarrow e_1, x_2 \rightarrow e_2, \cdots , x_n \rightarrow e_n$
+		means the substitution that maps $x_i$ to $e_i$ and $y \ne x_i$ to $y$.
+		%
+		\item
+		$
+			\aug{\sigma}{x:v}\prths{y} =
+			\begin{cases}
+				\sigma\prths{y} & \textrm{if } y \ne x \\
+				v               & \textrm{if } y = x
+			\end{cases}
+		$
+	\end{enumrm}
+
+	\begin{corollary}
+		%
+		\[
+			\bbrackets{e / x_1 \rightarrow e_1, \cdots , x_n \rightarrow e_n}\sigma =
+			\bbrackets{e} \aug{\sigma}{x_1 : \bbrackets{e_1} \sigma \middle\vert \cdots \middle\vert x_n : \bbrackets{e_n}\sigma}
+		\]
+		%
+	\end{corollary}
+	%
+	This intuitively says the correspondence between syntactic and semantic
+	substitutions.
+	%
+	\item
+	Structural induction holds because of the initiality of $\chevrons{intexp}$.
+	%
+	Can you explain why it is the case?
+	%
+\end{enumcirc}
+
+\section{Predicate logic (or first-order logic) informally}
+
+\begin{enumcirc}
+	\item
+	%
+	Language for expressing (boolean) properties (also called assertions).
+	%
+	\item
+	%
+	Extension of boolean expressions in programming languages with universal and
+	existential quantification.
+	%
+	\item
+	%
+	Examples:\\
+	%
+	$ \forall x .\; \forall y .\; \exists m .\; \exists n .\; x \times m + y \times n = 1 $ \\
+	%
+	$ \forall x .\; \exists y .\; y > x$
+	%
+	\item
+	%
+	Quantifiers are over integers, reals, and other first-order entities (i.e.
+	\underline{not} over sets of integers, and functions etc.).
+	%
+	The ``first-order'' in first-order logic refers to this restriction.
+	%
+	We will consider a version of predicate logic or first-order logic where
+	quantifiers range over integers and all variables are integer variables.
 
 \end{enumcirc}
 
+\section{Abstract syntax of predicate logic}
+
+\begin{enumcirc}
+	%
+	\item
+	%
+	Described in terms of the following abstract grammar:
+	%
+	\begin{center}
+		\begin{minipage}{0.8\textwidth}
+			\begin{grammar}
+				<intexp> ::= 0 | 1 | 2 | ...
+				| <var>\footnotemark | - <intexp> | <intexp> $\substack{+ \\ \times }$ <intexp>
+
+				<assert> ::= true | false | <intexp> $\substack{= \\ > }$ <intexp>
+				\alt $\neg$ <assert> | <assert> $\wedge$ <assert> | $\forall$ <var> . <assert>
+
+			\end{grammar}
+		\end{minipage}
+	\end{center}
+	\footnotetext{some countably-infinite set disjoint from 0, 1, 2, ...}
+	%
+	To simplify presentations, we will consider only $+$, $-$, $\times$, $=$, $>$,
+	$\neg$, $\wedge$, and $\forall$.
+	%
+	\item
+	%
+	What do we mean by abstract grammar and abstract syntax here?
+	%
+	If you got confused about initial-algebra stuff, just think that our abstract
+	syntax is the set of all finite derivation or parse trees.
+	%
+	If not you can view the abstract syntax as the initial algebra of the signature
+	induced by the grammar signature $S_{\textrm{PL}}$:
+	%
+	\[
+		\textrm{Signature} \quad S_{\textrm{PL}} =
+		\begin{pmatrix}
+			t\footnotemark,\; u\footnotemark,\; 0:t,\; 1:t\;, 2:t,\; \cdots,                                         \\
+			x: t,\; y: t,\; \cdots ,                                                                                 \\
+			- : t \rightarrow t,\; + : t \times t \rightarrow t,\; \times : t \times t \rightarrow t,\;              \\
+			\textrm{true}: u,\; \textrm{false}: u,\; = : t \times t \rightarrow u,\; > : t \times t \rightarrow u,\; \\
+			\neg: u \rightarrow u,\; \wedge: u \times u \rightarrow u,\; \forall: \chevrons{var} \times u \rightarrow u
+		\end{pmatrix}
+	\]
+	\footnoteeqn[-1]{integer expression}
+	\footnoteeqn{assertions}
+	%
+	\[
+		\textrm{Algebra} \quad A_0 =
+		\begin{pmatrix}
+			\mathcal{U}^0,\; \mathcal{V}^0,\; 0^0 \in \mathcal{U}^0,\; 1^0 \in \mathcal{U}^0,\; 2^0 \in \mathcal{U}^0,\; \cdots, \\
+			x^0 \in \mathcal{U}^0,\; y^0 \in \mathcal{U}^0,\; \cdots,                                                            \\
+			- \in \brackets{\mathcal{U}^0 \rightarrow \mathcal{U}^0},\;
+			\plustimes \in \brackets{\mathcal{U}^0 \times \mathcal{U}^0 \rightarrow \mathcal{U}^0},\;                            \\
+			\textrm{true}^0 \in \mathcal{V}^0,\;
+			\textrm{false}^0 \in \mathcal{V}^0,\;
+			\twostack{=^0}{<^0} \in \brackets{\mathcal{U}^0 \times \mathcal{U}^0 \rightarrow \mathcal{V}^0},\;                   \\
+			\neg^0 \in \brackets{\mathcal{V}^0 \rightarrow \mathcal{V}^0},\;
+			\wedge^0 \in \brackets{\mathcal{V}^0 \times \mathcal{V}^0 \rightarrow \mathcal{V}^0},\;                              \\
+			\forall^0 \in \brackets{\chevrons{var} \times \mathcal{V}^0 \rightarrow \mathcal{V}^0}
+		\end{pmatrix}
+	\]
+	%
+	\[
+		\textrm{Algebra} \quad A_1 =
+		\begin{pmatrix}
+			\mathcal{U}^1,\; \mathcal{V}^1,\; 0^1 \in \mathcal{U}^1,\; 1^1 \in \mathcal{U}^1,\; 2^1 \in \mathcal{U}^1,\; \\
+			\cdots                                                                                                       \\
+			\forall^1 \in \brackets{\chevrons{var} \times \mathcal{V}^1 \rightarrow \mathcal{V}^1}
+		\end{pmatrix}
+	\]
+	%
+	An algebra homomorphism from $A_0$ to $A_1$ is a pair
+	%
+	$h: \mathcal{U}^0 \rightarrow \mathcal{U}^1$ and
+	%
+	$k: \mathcal{V}^0 \rightarrow \mathcal{V}^1$
+	%
+	that preserves all constraints and operations.
+	%
+	For instance,
+	%
+	\begin{enumrm}
+		%
+		\item
+		%
+		$k \prths{=^0 \prths{a, b}} \quad = \quad =^1 \prths{h\prths{a}, h\prths{b}}$
+		%
+		\item
+		%
+		for any
+		%
+		$\substack{
+				x \in \chevrons{var}\\
+				a \in \mathcal{U}^0
+			}$,\ \
+		%
+		$k \prths{ \forall^0 \prths{x, =^0 \prths{a, x}} } \quad = \quad
+			\forall^1 \prths{x, =^1 \prths{h\prths{a}, h\prths{x}} }$
+		\leavevmode
+		\footnote{same $x$}
+		%
+	\end{enumrm}
+	%
+	As before, the abstract syntax is
+	%
+	\underline{ the initial algebra of this signature $S_{PL}$}.\footnote{
+		isomorphic to the algebra built with derivation trees
+	}
+	%
+	Because of initiality, we can define a function in a syntax-directed way.
+	%
+	Also, we can use structural induction to prove properties of assertions.
+	%
+\end{enumcirc}
+
+\section{Denotational semantics}
+
+\begin{enumcirc}
+	%
+	\item
+	%
+	We define two functions:
+	%
+	\begin{align*}
+		\intexpsem{-} & \in \brackets{\chevrons{intexp} \rightarrow \Sigma\footnotemark \rightarrow \Z} \\
+		\assertsem{-} & \in \brackets{\chevrons{assert} \rightarrow \Sigma \rightarrow \B\footnotemark}
+	\end{align*}
+	%
+	\footnoteeqn[-1]{$\chevrons{var} \rightarrow \Z$}
+	\footnoteeqn{$\braces{\ttt, \fff}$}
+	%
+	\item
+	%
+	the definition of $\intexpsem{-}$ is the same as before.
+	%
+	Recall that it is syntax-directed.
+	%
+	\item
+	%
+	The definition of $\assertsem{-}$ is as follows:
+	%
+	\begin{align*}
+		\assertsem{\true} \sigma                       & = \ttt                                                                    \\
+		\assertsem{\false} \sigma                      & = \fff                                                                    \\
+		\assertsem{e_1 \;\twostack{=}{>}\; e_2} \sigma & = \prths{\bbrackets{e_1}\sigma\; \twostack{=}{>}\; \bbrackets{e_2}\sigma} \\
+		\assertsem{\neg p} \sigma                      & = \prths{\neg \assertsem{p}\sigma}                                        \\
+		\assertsem{p_1 \wedge p_2} \sigma              & = \prths{\assertsem{p_1}\sigma \wedge \assertsem{p_2}\sigma}              \\
+		\assertsem{\forall x .\; p} \sigma             & = \prths{\forall n \in \Z .\; \assertsem{p}\prths{\aug{\sigma}{x:n}}}
+	\end{align*}
+	%
+	\item
+	%
+	Don't forget that what appears inside $\bbrackets{}$ is a tree, while $\forall$
+	and $\wedge$ on the RHS of $=$ are the usual mathematical notations.
+	%
+	As we discussed already, here we are really defining an algebra $A$ of $S_{PL}$
+	s.t.
+	%
+	\[
+		A = \prths{\Sigma \rightarrow \Z, \Sigma \rightarrow \B, \cdots}
+	\]
+	%
+	Then, we are using the initiality of the abstract syntax to get a map from it
+	to $A$.
+
+	\section{Inference rules}
+
+	\begin{enumcirc}
+		%
+		\item
+		%
+		Rules for deriving always-true (in other words, valid\footnote{ $p$ is valid if
+			$\assertsem{p}=\ttt$ for all $\sigma \in \Sigma$ }) assertions.
+		%
+		\item
+		%
+		Expressed using the inference-rule notation.
+		%
+		\[
+			\begin{array}{c}
+				\inferrule{ p_0 \\ p_0 \rightarrow p_1 }{p_1}
+				\qquad \qquad
+				\inferrule{ p }{\forall x .\; p}
+				\qquad \qquad
+				\inferrule{\ }{e_1 = e_2 \rightarrow e_1 = e_2}
+				\\
+			\end{array}
+		\]
+		%
+		general form: $ \inferrule{p_0 \\ \cdots \\ p_n}{p}$
+		%
+		\begin{enumrm}
+			%
+			\item
+			%
+			expresses if all of $p_0, \cdots , p_n$ are valid, then $p$ is valid.
+			%
+			\item
+			%
+			\underline{doesn't} say that for all $\sigma \in \Sigma$, if all of
+			$\assertsem{p_0}\sigma, \cdots , \assertsem{p_n}\sigma$ are $\ttt$, then
+			$\assertsem{p}\sigma$ is $\ttt$\footnote{
+				$\sigma$ satisfies $p$ or $p$ holds for $\sigma$.
+			}.
+			%
+		\end{enumrm}
+		%
+		\begin{exercise}
+			Prove why the above three rules are \underline{correct}\footnote{also called sound.}.
+		\end{exercise}
+		%
+		\item
+		%
+		A big part of research on or study about predicate logic is to study these
+		rules.
+		%
+		In this course, however, we will not do this.
+		%
+	\end{enumcirc}
+	%
+\end{enumcirc}
+
+\section{Binding and substitution}
+
+\begin{enumcirc}
+	%
+	\item
+	%
+	$\forall v$, $\exists v$:
+	%
+	\begin{enumrm}
+		%
+		\item
+		%
+		example of binders
+		%
+		\item
+		%
+		They have the scope of binding
+		%
+		\item
+		%
+		Informally, they
+		%
+		\ul{introduce a new variable},
+		%
+		\ul{give a nave $v$ to it}, and
+		%
+		\ul{make it available within its scope.}
+		%
+		Morally, renaming $v$ to some other variable $w$ should not change the meaning
+		of the assertion.
+		%
+	\end{enumrm}
+	%
+	\item
+	%
+	An occurrence of a variable $x$ is \ul{bound} in $p$ if $x$ is within the scope
+	of a binder for $x$ in $p$.
+	%
+	\item
+	%
+	An \underline{occurrence} of $x$ is \underline{free} in $p$ if it is not bound.
+	%
+	\item
+	%
+	A \underline{variable} is \underline{free} in $p$ if it has a free occurrence
+	in $p$.
+	%
+	\item
+	%
+	We can define functions $\textrm{FV}_{\textrm{\tiny assert}}$ and
+	$\textrm{FV}_{\textrm{\tiny intexp}}$ \footnote{ subscripts to be omitted }
+	that compute the sets of free variables of assertions and integer expressions,
+	in a syntax-directed way:
+	%
+	\begin{align*}
+		\fvintexp{e}                           & \cdots                     \textrm{defined as above} \\
+		\fvassert{\true}                       & = \phi                                               \\
+		\fvassert{\false}                      & = \phi                                               \\
+		\fvassert{e_1 \;\twostack{=}{>}\; e_2} & = \textrm{FV}\prths{e_1} \cup \textrm{FV}\prths{e_2} \\
+		\fvassert{\neg p}                      & = \textrm{FV}\prths{p}                               \\
+		\fvassert{p_1 \wedge p_2}              & = \textrm{FV}\prths{p_1} \cup \textrm{FV}\prths{p_2} \\
+		\fvassert{\forall x .\; p}             & = \textrm{FV}\prths{p} \setminus \braces{x}
+	\end{align*}
+	%
+	\begin{exercise}
+		Define an algebra for $S_{\textrm{PL}}$ such that the algebra homomorphism from the abstract syntax to
+		this algebra is $\prths{\textrm{FV}_{\textrm{\tiny intexp}}, \textrm{FV}_{\textrm{\tiny assert}}}$.
+	\end{exercise}
+	%
+	\item
+	%
+	Now, how should we deal with binders during substitution?
+	%
+	It is not entirely obvious.
+	%
+	Several textbooks had wrong definitions in old days.\footnote{ mistake:
+		$\forall y .\; y > x / x \rightarrow y = \forall y .\; y > y + 1$ }\\
+	%
+	Correct definition:\\
+	%
+	\[
+		\begin{array}{c}
+			\true / \delta = \true \qquad \qquad \false / \delta = \false                                                    \\[1em]
+			\prths{e_1 \;\twostack{=}{>}\; e_2 \; / \delta} = \prths{e_1 / \delta \;\twostack{=}{>}\; e_2 / \delta} \qquad \qquad
+			\neg p / \delta = \neg \prths{p / \delta}                                                                        \\[1em]
+			\prths{p_1 \wedge p_2} / \delta = \prths{p_1 / \delta \wedge p_2 / \delta} \qquad \qquad
+			\prths{\forall x .\; p} / \delta = \forall v_{\textrm{\tiny new}} .\; p / \aug{\delta}{v:v_{\textrm{\tiny new}}} \\[1em]
+			\displaystyle
+			\textrm{where} \quad v_{\textrm{\tiny new}} \notin
+			\bigcup_{w \in \textrm{FV}\prths{p} \backslash \braces{v}}
+			\textrm{FV}\prths{\delta\prths{w}}\footnotemark
+		\end{array}
+	\]
+	\footnoteeqn{
+		\begin{minipage}[t]{0.8\textwidth}
+			device that lets us avoid variable capturing; if $v$ is not in the set then $v_{\textrm{\tiny new}} = v$.
+			Otherwise, $v_{\textrm{\tiny new}}$ is the first variable not in the set.
+		\end{minipage}
+	}
+	%
+	\begin{property}[Coincidence]
+		%
+		\[
+			\bbrackets{p}\sigma = \bbrackets{p}\sigma^\prime
+		\]
+		%
+		$p \cdots$ assertion or integer expression \\
+		%
+		$\sigma, \sigma^\prime \cdots$ states s.t.
+		%
+		$\sigma\prths{w} = \sigma^\prime\prths{w}$ for all $w \in \textrm{FV}\prths{p}$.
+		%
+	\end{property}
+	%
+	\begin{proof}
+		By structural induction.\footnote{
+			we can use it because the abstract syntax for predicate logic is an initial algebra.
+		}
+		%
+		\begin{itemize}
+			%
+			\item
+			      %
+			      $p \equiv \true$ or $\false$:\quad trivial.
+			      %
+			\item
+			      %
+			      $p \equiv e_1 \;\twostack{=}{>}\; e_2$:
+			      %
+			      \[
+				      \fv{e_i} \subseteq \fv{p} \quad \textrm{for } i = 1, 2 \quad
+				      \therefore \forall w \in \fv{e_i}, \; \sigma\prths{w} = \sigma^\prime\prths{w}
+			      \]
+			      %
+			      We can use induction and get
+			      %
+			      $ \bbrackets{e_i}\sigma = \bbrackets{e_i}\sigma^\prime $.
+			      %
+			      \begin{align*}
+				      \bbrackets{p}\sigma & = \bbrackets{e_1}\sigma \;\twostack{=}{>}\; \bbrackets{e_2}\sigma               \\
+				                          & = \bbrackets{e_1}\sigma^\prime \;\twostack{=}{>}\; \bbrackets{e_2}\sigma^\prime \\
+				                          & = \bbrackets{p}\sigma^\prime
+			      \end{align*}
+			      %
+			\item
+			      %
+			      $p \equiv \neg p^\prime$:\quad similar.
+			      %
+			\item
+			      %
+			      $p \equiv p_1 \wedge p_2$:\quad similar.
+			      %
+			\item
+			      %
+			      $p \equiv \forall x .\; p^\prime$:\quad
+			      %
+			      For all $n \in \Z$,
+			      %
+			      \[
+				      \sigma_1 := \aug{\sigma}{x:n}\prths{w} \qquad \sigma_1^\prime := \aug{\sigma^\prime}{x:n}\prths{w}
+			      \]
+			      %
+			      Then, $\forall w \in \fv{p^\prime}$,
+			      %
+			      $\sigma_1\prths{w} = \sigma_1^\prime\prths{w}$.
+			      %
+			      Therefore, by induction hypothesis,
+			      %
+			      \[
+				      \bbrackets{p^\prime}\sigma_1 = \bbrackets{p^\prime}\sigma_1^\prime
+			      \]
+			      %
+			      \begin{align*}
+				      \therefore \bbrackets{p}\sigma & = \forall n \in \Z .\; \bbrackets{p^\prime}\sigma_1        \\
+				                                     & = \forall n \in \Z .\; \bbrackets{p^\prime}\sigma_1^\prime \\
+				                                     & = \bbrackets{p}\sigma^\prime
+			      \end{align*}
+		\end{itemize}
+	\end{proof}
+
+	\begin{property}[Substitution]
+		%
+		\[
+			\sigma\prths{w} = \bbrackets{\delta\prths{w}}\sigma^\prime
+			\quad \Rightarrow \quad \bbrackets{p/\delta}\sigma^\prime = \bbrackets{p}\sigma
+		\]
+		%
+	\end{property}
+	%
+	\begin{proof}
+		By structural induction.
+	\end{proof}
+
+	\begin{property}[Finite substitution theorem\footnote{correspondence between syntactic and semantic substitutions.}]
+		%
+		\[
+			\bbrackets{p/v_0 \rightarrow e_0, \cdots , v_n \rightarrow e_n}\sigma =
+			\bbrackets{p}\aug{\sigma}{v_0 : \bbrackets{e_0}\sigma \middle\vert \cdots \middle\vert v_n : \bbrackets{e_n}\sigma}
+		\]
+		%
+	\end{property}
+	%
+	\begin{proof}
+		By structural induction.
+	\end{proof}
+
+	\begin{property}[Renaming\footnote{renaming doesn't change the meaning of an assertion}]
+		%
+		\[
+			w \notin \fvassert{q} \backslash \braces{v} \quad \Rightarrow \quad
+			\bbrackets{\forall w .\; q / v \rightarrow w}\sigma = \bbrackets{\forall v .\; q}\sigma
+		\]
+	\end{property}
+
+\end{enumcirc}

@@ -24,6 +24,11 @@
 \usepackage{changepage}
 \usepackage{mathrsfs}
 \usepackage{stmaryrd}
+\usepackage[perpage]{footmisc}
+\usepackage{mathpartir}
+\usepackage{soul}
+% \usepackage{endnotes}
+% \usepackage{enotez}
 
 \newtheoremstyle{tabstyle}
   {\topsep} % Space above
@@ -34,9 +39,9 @@
   {.} % Punctuation after theorem head
   {.5em} % Space after theorem head
   {} % Theorem head spec (can be left empty, meaning ‘normal’)
-\newtheorem{theorem}{Theorem}
-\newtheorem{corollary}{Corollary}
-\newtheorem{property}{Property}
+\newtheorem{theorem}{Theorem}[chapter]
+\newtheorem*{corollary}{Corollary}
+\newtheorem{property}{Property}[chapter]
 \newtheorem*{lemma}{Lemma}
 \newtheorem*{definition}{Definition}
 \newtheorem{note}{Note}
@@ -62,6 +67,8 @@
 \newcommand*\circled[1]{\tikz[baseline=(char.base)]{
             \node[shape=circle,draw,inner sep=2pt] (char) {#1};}}
 
+\newcommand{\inred}{\color{red}}
+\newcommand{\todo}{{\inred TODO}}
 \newcommand{\<}{\langle}
 \renewcommand{\>}{\rangle}
 \newcommand{\abs}[1]{\left\vert #1 \right\vert}
@@ -71,10 +78,27 @@
 \newcommand{\bbrackets}[1]{\left\llbracket #1 \right\rrbracket}
 \newcommand{\chevrons}[1]{\left\< #1 \right\>}
 \newcommand{\set}[2]{\left\{ #1 \; \middle\vert \; #2 \right\}}
+\newcommand{\aug}[2]{\left[ #1 \; \middle\vert \; #2 \right]}
+\newcommand{\subsc}[2]{#1_{\textrm{\tiny #2}}}
+\newcommand{\intexpsem}[1]{\bbrackets{#1}_{\textrm{\tiny intexp}}}
+\newcommand{\assertsem}[1]{\bbrackets{#1}_{\textrm{\tiny assert}}}
 
-\newcommand{\z}{\mathbb{Z}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\B}{\mathbb{B}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\true}{\textrm{true}}
+\newcommand{\false}{\textrm{false}}
+\newcommand{\ttt}{\textbf{tt}}
+\newcommand{\fff}{\textbf{ff}}
 \newcommand{\fv}[1]{\textrm{FV}\prths{ #1 }}
+\newcommand{\fvintexp}[1]{\textrm{FV}_{\textrm{\tiny intexp}}\prths{ #1 }}
+\newcommand{\fvassert}[1]{\textrm{FV}_{\textrm{\tiny assert}}\prths{ #1 }}
 \newcommand{\where}{\quad \textrm{ where } \;}
+\newcommand{\elemarith}{\substack{+\\-\\\times\\\div}}
+\newcommand{\plustimes}{\substack{+\\ \times}}
+\newcommand{\twostack}[2]{\substack{#1\\#2}}
+
+\newcommand{\footnoteeqn}[2][1]{\addtocounter{footnote}{#1}\footnotetext{#2}}
 
 \renewcommand{\thefootnote}{\fnsymbol{footnote}}
 
@@ -83,7 +107,7 @@
 \date{\today}
 
 \OnehalfSpacing
-\counterwithin*{footnote}{page}
+% \counterwithin*{footnote}{page}
 
 \begin{document}
 
