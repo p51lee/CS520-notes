@@ -1,3 +1,600 @@
 \chapter{Failure, Input-Output, and Continuations}
 
-\todo
+\section{Motivation}
+
+\begin{enumcirc}
+	%
+	\item
+	%
+	Realistic programming languages have a wide range of language constructs and
+	features.
+	%
+	In particular, they have constructs for input and output and those for altering
+	the flow of exectuion.
+	%
+	\item
+	%
+	We will study mathematical tools that allow us to study or analyze constructs
+	for input-output and the fail operation, the simplest operator for changing the
+	flow of execution.
+	%
+	\item
+	%
+	Specifically, we will study recursively defined domains, the disjoint union of
+	domains and continuations, and use them to define denotational semantics of an
+	imperative language with input-output and failure.
+	%
+	\item
+	%
+	Here are a few transferable high-level messages that I want you to learn in the
+	chapter.
+	%
+	\begin{enumrm}
+		%
+		\item
+		%
+		Recursively defined domains can be used to model computations with intermediate
+		results\footnote{such as computations with outputs}
+		%
+		and computations that may be stopped in the middle and be resumed
+		later\footnote{such as computations with inputs}.
+		%
+		\item
+		%
+		Continuations may simplify semantic definitions by providing a canonical
+		treatment of sequential composition operator.
+		%
+	\end{enumrm}
+	%
+\end{enumcirc}
+
+\section{Syntax of a programming language with failure and input-output}
+
+\begin{center}
+	\begin{minipage}{0.9\textwidth}
+		\begin{grammar}
+			<comm> ::= \dots | newvar <var> := <intexp> in <comm> | fail\footnotemark | ?<var>\footnotemark | !<intexp>\footnotemark
+		\end{grammar}
+	\end{minipage}
+\end{center}
+\footnoteeqn[-2]{failure}
+\footnoteeqn{input}
+\footnoteeqn{output}
+%
+Fail terminates the current execution and makes the current state the final
+state of execution modulo the restoration of values of global variables.
+
+\begin{exercise}
+	%
+	Write two interesting programs in this language.
+	%
+\end{exercise}
+
+\begin{exercise}
+	%
+	What should be the final state of the following program?
+	%
+	\begin{center}
+		\begin{minipage}{0.6\textwidth}
+			\begin{verbatim}
+        x := 124; y := 0;
+        (newvar x := 3 in fail);
+        y := 2
+      \end{verbatim}
+		\end{minipage}
+	\end{center}
+	%
+\end{exercise}
+
+\section{Semantics}
+
+\begin{enumcirc}
+	%
+	\item
+	%
+	The most important step in defining the semantics is to decide the form of the
+	interpretation function for commands:
+	%
+	\[
+		\bbrackets{-} \in \brackets{\chevrons{\textit{comm}} \to \brackets{\underline{A} \toc^{\footnotemark} \underline{B}}}
+	\]
+	\footnotetext{continuous function}
+	%
+	What predomains or domains should we use for $\underline{A}$ and
+	$\underline{B}$?
+	%
+	\item
+	%
+	$\underline{A}$ should be $\Sigma = \brackets{\textit{Var} \to \Z}$,
+	%
+	the set of (or predomain) of states.\footnote{
+		\begin{minipage}{0.8\textwidth}
+			\vspace{0.2em}
+			Recall that a set can be viewed
+			as a predomain when it is given $=$ as its order $\sqsubseteq$, which is called
+			discrete order.
+			\vspace{0.2em}
+		\end{minipage}
+	}
+	%
+	\item
+	%
+	$\underline{B}$ is complex.
+	%
+	Its element describe computations that can be stopped and resumed, and may
+	output some integers in the middle.
+	%
+	Formally,
+	%
+	\begin{align*}
+		\underline{B} & = \Omega \simeq\footnotemark \prths{\hat{\Sigma} + \prths{\Z \times \Omega} + \prths{\Z \toc \Omega}}_\bot
+		\footnotemark \footnotemark                                                                                                \\
+		\hat{\Sigma}  & = \Sigma \cup \braces{\abort} \times \Sigma \simeq \Sigma + \Sigma
+	\end{align*}
+	\footnoteeqn[-2]{is isomorphic to}
+	\footnoteeqn{$\Omega$ satisfies a form of equation}
+	\footnoteeqn{
+		\begin{minipage}{0.8\textwidth}
+			\vspace{0.2em}
+			The RHS of the isomorphism says that there are five kinds of outcomes of
+			running a command at a given state. We list these cases below.
+			\vspace{0.2em}
+		\end{minipage}
+	}
+	%
+	\item
+	%
+	Many things here are not defined nor explained.
+	%
+	We will look at them one by one.
+	%
+	But before doing so, let's try to understand intuitions behind this definition.
+	%
+	\begin{enumrm}
+		%
+		\item
+		%
+		non-termination \dots $\bot$
+		%
+		\item
+		%
+		normal termination with a state $\sigma$ \dots
+		%
+		$\sigma \in \Sigma$
+		%
+		\item
+		%
+		abnormal termination with a state $\sigma$ \dots
+		%
+		$\chevrons{\abort, \sigma} \in \braces{\abort} \times \Sigma$
+		%
+		\item
+		%
+		output $n$ and the rest of computation $\omega$ \dots
+		%
+		$\chevrons{n, \omega} \in \Z \times \Omega$
+		%
+		\item
+		%
+		suspended computation $g$ that waits for an input \dots
+		%
+		$g \in \prths{\Z \toc \Omega}$
+		%
+	\end{enumrm}
+	%
+	\item
+	%
+	The description of $\Omega$ uses two pre-domain constructors, sum $+$ and
+	product $\times$.
+	%
+	Let $P_0, \cdots, P_{n-1}$ be pre-domains and let
+	%
+	$\sqsubseteq_0, \cdots, \sqsubseteq_{n-1}$ be the partial orders of these pre-domains.
+	%
+	From these pre-domains, we can construct the following two pre-domains, their
+	sum and product:
+	%
+	\[
+		\begin{array}{c}
+			P_0 + \cdots + P_{n-1} = \set{\chevrons{i, x}}{i \in \braces{0, \cdots, n-1}, x \in P_i}          \\[0.5em]
+			\chevrons{i, x} \sqsubseteq \chevrons{j, y} \textrm{ iff } i = j \textrm{ and } x \sqsubseteq_i y \\[1em]
+			P_0 \times \cdots \times P_{n-1} = \set{\chevrons{x_0, \cdots, x_{n-1}}}{x_i \in P_i}             \\[0.5em]
+			\chevrons{x_0, \cdots, x_{n-1}} \sqsubseteq \chevrons{y_0, \cdots, y_{n-1}} \textrm{ iff }
+			x_i \sqsubseteq_i y_i \textrm{ for all } i \in \braces{0, \cdots, n-1}
+		\end{array}
+	\]
+	%
+	\begin{enumrm}
+		%
+		\item
+		%
+		\begin{exercise}
+			%
+			Show that $P_0 + \cdots + P_{n-1}$ and $P_0 \times \cdots \times P_{n-1}$ are
+			pre-domains.
+			%
+			Also, prove that $P_0 \times \cdots \times P_{n-1}$ is a domain if all $P_i$'s
+			are domains.
+			%
+		\end{exercise}
+		%
+		\underline{Hint/Information}:
+		%
+		\begin{enumalpha}
+			%
+			\item
+			%
+			The least upper bound of a chain
+			%
+			$\braces{\chevrons{x_0^{(k)}, \cdots, x_{n-1}^{(k)}}}_k$ in
+			%
+			$P_0 \times \cdots \times P_{n-1}$ can be computed component-wise.
+			%
+			\[
+				\bigsqcup_k^\infty \chevrons{x_0^{(k)}, \cdots, x_{n-1}^{(k)}} =
+				\chevrons{\bigsqcup_k^\infty x_0^{(k)}, \cdots, \bigsqcup_k^\infty x_{n-1}^{(k)}}
+			\]
+			%
+			\item
+			%
+			For every chain $\braces{z_k}_k$ in $P_0 + \cdots + P_{n-1}$, there are some
+			$i$ and a chain $\braces{x_k}_k$ in $P_i$ such that $z_k = \chevrons{i, x_k}$
+			for all $k$.
+			%
+		\end{enumalpha}
+		%
+		\item
+		%
+		These predomain constructors correspond to the sum and product type
+		constructors in programming languages.
+		%
+		\item
+		%
+		For each case, we have a way to construct an element and a way to destruct an
+		element.
+		%
+		Constructors:
+		%
+		\begin{enumalpha}
+			%
+			\item
+			%
+			injection function $\iota_k \in \brackets{P_k \toc P_0 + \cdots + P_{n-1}}$:
+			%
+			$\iota_k \prths{x} = \chevrons{k, x}$
+			%
+			\item
+			%
+			For
+			%
+			$f_0 \in \brackets{P \toc P_0}, \cdots, f_{n-1} \in \brackets{P \toc P_{n-1}}$,\\
+			%
+			the ``target-tupling'' function
+			%
+			$f_0 \otimes \cdots \otimes f_{n-1} \in \brackets{P \toc P_0 \times \cdots \times P_{n-1}}$:\\
+			%
+			\[
+				\prths{f_0 \otimes \cdots \otimes f_{n-1}}\prths{x} = \chevrons{f_0\prths{x}, \cdots, f_{n-1}\prths{x}}
+			\]
+			%
+		\end{enumalpha}
+		%
+		Destructors:
+		%
+		\begin{enumalpha}
+			%
+			\item
+			%
+			For
+			%
+			$f_0 \in \brackets{P_0 \toc P}, \cdots, f_{n-1} \in \brackets{P_{n-1} \toc P}$,\\
+			%
+			the ``source-tupling'' function
+			%
+			$f_0 \oplus \cdots \oplus f_{n-1} \in \brackets{P_0 + \cdots + P_{n-1} \toc P}$:\\
+			%
+			\[
+				\prths{f_0 \oplus \cdots \oplus f_{n-1}}\prths{\chevrons{i, x}} = f_i\prths{x}
+			\]
+			%
+			\item
+			%
+			projection function
+			%
+			$\pi_k \in \brackets{P_0 \times \cdots \times P_{n-1} \toc P_k}$:
+			%
+			\[
+				\pi_k\prths{\chevrons{x_0, \cdots, x_{n-1}}} = x_k
+			\]
+			%
+		\end{enumalpha}
+		%
+		These constructors and destructors are mutually inverse in a sense.
+		%
+		Prop 5.1 and Prop 5.2 in the textbook express such inverse relationships.
+		%
+		\item
+		%
+		The sum and product operators can be applied to continuous functions so as to
+		build a new continuous function.
+		%
+		For instance, if
+		%
+		\[
+			f_0 \in \brackets{P_0 \toc P_0^\prime}, \cdots, f_{n-1} \in \brackets{P_{n-1} \toc P_{n-1}^\prime}
+		\]
+		%
+		Then we have the following two \ul{continuous} functions:
+		%
+		\begin{align*}
+			\prths{f_0 + \cdots + f_{n-1}}           & \in \brackets{P_0 + \cdots + P_{n-1} \toc P_0^\prime + \cdots + P_{n-1}^\prime}                     \\
+			\prths{f_0 + \cdots + f_{n-1}}           & \chevrons{i, x}  = \chevrons{i, f_i\prths{x}}                                                       \\
+			\prths{f_0 \times \cdots \times f_{n-1}} & \in \brackets{P_0 \times \cdots \times P_{n-1} \toc P_0^\prime \times \cdots \times P_{n-1}^\prime} \\
+			\prths{f_0 \times \cdots \times f_{n-1}} & \chevrons{x_0, \cdots, x_{n-1}} = \chevrons{f_0\prths{x_0}, \cdots, f_{n-1}\prths{x_{n-1}}}
+		\end{align*}
+		%
+	\end{enumrm}
+	%
+	Many predomain constructors similarly induce constructors for continuous
+	functions.
+	%
+	This is because they are functors on the category of predomains and continuous
+	functions.
+	%
+	We will look at such category-theoretic formulation in some later lectures.
+	%
+	\item
+	%
+	One nontrivial important concept is a recursively-defined domain.
+	%
+	Recall the description of $\Omega$ in the beginning of this lecture:
+	%
+	\begin{align*}
+		\Omega       & \simeq \prths{\hat{\Sigma} + \prths{\Z \times \Omega} + \prths{\Z \to \Omega}}_\bot \\
+		\hat{\Sigma} & = \Sigma\footnotemark + \Sigma\footnotemark
+	\end{align*}
+	\footnoteeqn[-1]{normal termination}
+	\footnoteeqn{failed termination}
+	%
+	$\simeq$ means the presence of two continuous functions $\phi$ and $\psi$:
+	%
+	\[
+		\Omega
+		\mathrel{\mathop{\rightleftarrows}^{\mathrm{\phi}}_{\mathrm{\psi}}}
+		\prths{\hat{\Sigma} + \prths{\Z \times \Omega} + \prths{\Z \to \Omega}}_\bot
+	\]
+	%
+	such that $\phi \circ \psi = \mathrm{id}$ and $\psi \circ \phi = \mathrm{id}$.
+
+	Note that the RHS of $\simeq$ contains $\Omega$ itself, something that is being
+	defined.
+	%
+	It is a bit like $\Omega$ is defined in terms of itself, i.e. recursively.
+	%
+	Or we can say that $\Omega$ is a fixed point of some equations over domains.
+	%
+	\begin{enumrm}
+		%
+		\item
+		%
+		$\Omega$ is the domain of possible outcomes.
+		%
+		The isomorphism $\phi$ confirms that it consists of five kinds of elements
+		corresponding to five different outcomes described earlier.
+		%
+		\item
+		%
+		$\Omega$ is not just a solution of the recursive domain equation.
+		%
+		It satisfies the following \ul{minimality condition}\footnote{ also called
+			initiality }.
+
+		For any domain $D$ and any continuous function $\alpha$
+		%
+		\[
+			\alpha \in \brackets{\prths{\hat{\Sigma} + \prths{\Z \times D} + \prths{\Z \to D}}_\bot \toc D},
+		\]
+		%
+		there exists a unique continuous function $\beta \in \brackets{\Omega \toc D}$
+		such that the following diagram commutes.
+		%
+		\[
+			\begin{tikzcd}[cramped, sep=9em]
+				\prths{\hat{\Sigma} + \prths{\Z \times \Omega} + \prths{\Z \to \Omega}}_\bot
+				\arrow[r, "\prths{\textrm{id}_{\hat{\Sigma}}+\prths{\textrm{id}_\Z\times\beta}+\prths{\Z\to\beta}\footnotemark}"]
+				\arrow[d, "\phi"] &
+				\prths{\hat{\Sigma} + \prths{\Z \times D} + \prths{\Z \to D}}_\bot \arrow[d, "\alpha"]\\
+				\Omega \arrow[r, "\beta"']                                                                                         & D
+			\end{tikzcd}
+		\]
+		\footnoteeqn[0]{
+			\begin{minipage}{0.8\textwidth}
+				\vspace{0.2em}
+				\begin{enumalpha}
+					%
+					\item
+					%
+					$\prths{\Z \to \beta} \in \brackets{\prths{\Z \to \Omega} \toc \prths{\Z \to D}}$\\
+					%
+					$\prths{\Z \to \beta}\prths{g}\prths{n} = \beta\prths{g\prths{n}}$
+					%
+					\item
+					%
+					% asdf
+					$\forall f \in \brackets{D^\prime \toc D^{\prime\prime}}$, we have
+					%
+					$f_\bot \in \brackets{D^\prime_\bot \toc D^{\prime\prime}_\bot}$ \\ s.t.
+					%
+					$f_\bot\prths{\bot} = \bot$ and $f_\bot\prths{x} = f\prths{x}$ for all $x \in D^\prime$.
+				\end{enumalpha}
+				\vspace{0.2em}
+			\end{minipage}
+		}
+
+		One important consequence is that we can define a continuous function from
+		$\Omega$ by case analysis, just as we can define a function on programs in a
+		syntax-directed manner.
+		%
+		\item
+		%
+		Why does such $\Omega$ exist?
+		%
+		Because the predomain constructors used in the RHS of $\simeq$ are all very
+		good, that is, they satisfy so-called local continuity.
+		%
+		The situation is very similar to the one for the fixed point theorem.
+		%
+		There we require a function to be continuous.
+		%
+		There, we use an analogous property on an operator that constructs a domain.
+		%
+		Later we will study this in detail.
+		%
+		\item
+		%
+		A few basic embedding operators\footnote{Editor's note: injection function?}:
+		%
+		\begin{align*}
+			\ibot                                            &
+			\in \brackets{\braces{\bot} \toc \Omega}         &
+			\ibot\prths{\bot} =\;                            &
+			\psi\prths{\bot_\Omega}                                                               \\
+			\iterm                                           &
+			\in \brackets{\Sigma \toc \Omega}                &
+			\iterm\prths{\sigma} =\;                         &
+			\psi\prths{\chevrons{0,\chevrons{0, \sigma}}} = \psi\prths{\sigma}\footnotemark       \\
+			\iabort                                          &
+			\in \brackets{\Sigma \toc \Omega}                &
+			\iabort\prths{\sigma} =\;                        &
+			\psi\prths{\chevrons{0,\chevrons{1, \sigma}}} = \psi\prths{\chevrons{\abort, \sigma}} \\
+			\iout                                            &
+			\in \brackets{\Z \times \Omega \toc \Omega}      &
+			\iout\prths{n, \omega} =\;                       &
+			\psi\prths{\chevrons{1, \chevrons{n, \omega}}} = \psi\prths{\chevrons{n, \omega}}     \\
+			\iin                                             &
+			\in \brackets{\prths{\Z \to \Omega} \toc \Omega} &
+			\iin\prths{g} =\;                                &
+			\psi\prths{\chevrons{2, g}} = \psi\prths{g}
+		\end{align*}
+		\footnoteeqn[0]{We will just write $\sigma$. Similar for other cases.}
+		%
+		\item
+		%
+		Consider $f \in \brackets{\Sigma \toc \Omega}$
+		%
+		and $h \in \brackets{\Sigma \toc \Sigma}$.
+		%
+		We want to define $f_* \in \brackets{\Omega \toc \Omega}$
+		%
+		and $h_\dagger \in \brackets{\Omega \toc \Omega}$
+		%
+		such that $f_*$ applies $f$ only for normally terminating state part of a given
+		$\omega \in \Omega$ and $h_\dagger$ applies $h$ applies $h$ to the terminating
+		or failing state part of $\omega$.
+		%
+		For instance,
+		%
+		\begin{align*}
+			f_*\prths{\iout\prths{3, \iout\prths{4, \iterm\prths{\sigma}}}}       & = \iout\prths{3, \iout\prths{4, f\prths{\sigma}}} \\
+			f_*\prths{\iout\prths{3, \iabort{\sigma}}}                            & = \iout\prths{3, \iabort\prths{\sigma}}           \\
+			h_\dagger\prths{\iout\prths{3, \iout\prths{4, \iterm\prths{\sigma}}}} & = \iout\prths{3, \iout\prths{4, h\prths{\sigma}}} \\
+			h_\dagger\prths{\iout\prths{3, \iabort{\sigma}}}                      & = \iout\prths{3, \iabort\prths{h\prths{\sigma}}}
+		\end{align*}
+		%
+		How to define $f_*$ and $h_\dagger$?
+		%
+		Because of (ii), we can define them by case analysis:
+		%
+		\begin{align*}
+			f_*\prths{\ibot}                         =\; & \ibot\prths{\bot}                                     \\
+			f_*\prths{\iterm\prths{\sigma}}          =\; & \iterm\prths{f\prths{\sigma}}                         \\
+			f_*\prths{\iabort\prths{\sigma}}         =\; & \iabort\prths{\sigma}                                 \\
+			f_*\prths{\iout\prths{n, \omega}}        =\; & \iout\prths{n, f_*\prths{\omega}}                     \\
+			f_*\prths{\iin\prths{g}}                 =\; & \iin\prths{\lambda n.\; f_*\prths{g\prths{n}}}        \\[1em]
+			h_\dagger\prths{\ibot}                   =\; & \ibot\prths{\bot}                                     \\
+			h_\dagger\prths{\iterm\prths{\sigma}}    =\; & \iterm\prths{h\prths{\sigma}}                         \\
+			h_\dagger\prths{\iabort\prths{\sigma}}   =\; & \iabort\prths{h\prths{\sigma}}                        \\
+			h_\dagger\prths{\iout\prths{n, \omega}}  =\; & \iout\prths{n, h_\dagger\prths{\omega}}               \\
+			h_\dagger\prths{\iin\prths{g}}           =\; & \iin\prths{\lambda n.\; h_\dagger\prths{g\prths{n}}}.
+		\end{align*}
+		%
+		\begin{exercise}
+			In both cases, we have well-defined $f_*$ and $h_\dagger$ because of the minimality condition in (ii).
+			%
+			Find an appropriate $\alpha$ and $D$.
+			%
+		\end{exercise}
+		%
+		\item
+		%
+		For $\omega, \omega^\prime \in \Omega$,
+		%
+		intuitively $\omega \sqsubseteq \omega^\prime$ if we can obtain $\omega^\prime$
+		by replacing $\bot$ in $\omega$.
+		%
+		Intuitively, $\sqsubseteq$ represents the progression of computation.
+		%
+		\begin{example}
+			We will write $\botO$ for $\ibot\prths{\bot}$.
+			%
+			\begin{align*}
+				\iout \prths{3, \iout\prths{4, \botO}} \sqsubseteq\;             &
+				\iout\prths{3, \iout\prths{4, \iout\prths{5, \iterm\prths{\sigma}}}} \\
+				\iin \prths{\lambda n.\; \iout\prths{n+1,  \botO}} \sqsubseteq\; &
+				\iin\prths{\lambda n.\; \iout\prths{n+1, \iin\prths{\lambda m.\; \iout\prths{m+n, \iterm\prths{\sigma}}}}}
+			\end{align*}
+			%
+		\end{example}
+		%
+	\end{enumrm}
+	%
+	\item
+	%
+	Interpretation of commands:
+	%
+	\begin{align*}
+		\bbrackets{-}                                & \in
+		\brackets{\chevrons{\textit{comm}} \to \brackets{\Sigma \toc \Omega}}                              \\
+		\bbrackets{\cskip} \prths{\sigma}            & =
+		\iterm\prths{\sigma}                                                                               \\
+		\bbrackets{\cseq{c_1}{c_2}} \prths{\sigma}   & =
+		\bbrackets{c_2}_* \prths{\bbrackets{c_1} \prths{\sigma}}                                           \\
+		\bbrackets{\cif{b}{c_1}{c_2}} \prths{\sigma} & =
+		\cif{\bbrackets{b} \prths{\sigma}}{\bbrackets{c_1} \prths{\sigma}}{\bbrackets{c_2} \prths{\sigma}} \\
+		\bbrackets{\cwhile{b}{c}} \prths{\sigma}     & =
+		\prths{\subscmath{Y}{(\Sigma \toc \Omega)} F}\footnotemark \prths{\sigma}                          \\
+		\textrm{where } F\prths{f}\prths{\sigma}     & =
+		\cif{\bbrackets{b} \prths{\sigma}}{f_*\prths{\bbrackets{c} \prths{\sigma}}}{\sigma}                \\
+		\bbrackets{\cfail} \prths{\sigma}            & =
+		\iabort\prths{\sigma}                                                                              \\
+		\bbrackets{\cout{e}} \prths{\sigma}          & =
+		\iout\prths{\bbrackets{e}\prths{\sigma}, \iterm{\prths{\sigma}}}                                   \\
+		\bbrackets{\cin{v}} \prths{\sigma}           & =
+		\iin\prths{\lambda n.\; \iterm\prths{\aug{\sigma}{v:n}}}                                           \\
+		\bbrackets{\cnew{v}{e}{c}} \prths{\sigma}    & =
+		\prths{\lambda \sigma^\prime .\; \aug{\sigma^\prime}{v:\sigma\prths{v}}}_\dagger
+		\prths{\bbrackets{c} \aug{\sigma}{v: \bbrackets{e}{\sigma}}}                                       \\
+		\bbrackets{\cassign{v}{e}} \prths{\sigma}    & =
+		\iterm\prths{\aug{\sigma}{v: \bbrackets{e}{\sigma}}}
+	\end{align*}
+	\footnoteeqn[0]{$\bigcup_{n=0}^\infty F^n \prths{\bot}$}
+	%
+	\begin{exercise}
+		%
+		Prove the following equations:
+		%
+		\begin{align*}
+			\bbrackets{\cseq{\cassign{x}{3}}{\cout{x}}} & = \bbrackets{\cseq{\cassign{x}{3}}{\cout{3}}} \\
+			\bbrackets{\cseq{\cfail}{c}}                & = \bbrackets{\cfail}                          \\
+		\end{align*}
+	\end{exercise}
+	%
+	\begin{exercise}
+		Does the following equation hold?
+		%
+		\[
+			\bbrackets{\cseq{\cin{x}}{\cassign{y}{3}}} = \bbrackets{\cseq{\cassign{y}{3}}{\cin{x}}}
+		\]
+		%
+	\end{exercise}
+\end{enumcirc}

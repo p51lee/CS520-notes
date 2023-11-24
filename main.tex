@@ -27,8 +27,11 @@
 \usepackage[perpage]{footmisc}
 \usepackage{mathpartir}
 \usepackage{soul}
-% \usepackage{endnotes}
-% \usepackage{enotez}
+\usepackage{listings}
+\usepackage{pifont}
+\usepackage{tikz-cd}
+
+
 
 \newtheoremstyle{tabstyle}
   {\topsep} % Space above
@@ -62,6 +65,9 @@
 \newenvironment{enumrm}
   {\begin{enumerate}[label=(\roman*)]}
   {\end{enumerate}}
+\newenvironment{enumalpha}
+  {\begin{enumerate}[label=(\alph*)]}
+  {\end{enumerate}}
 
 
 \newcommand*\circled[1]{\tikz[baseline=(char.base)]{
@@ -79,7 +85,8 @@
 \newcommand{\chevrons}[1]{\left\< #1 \right\>}
 \newcommand{\set}[2]{\left\{ #1 \; \middle\vert \; #2 \right\}}
 \newcommand{\aug}[2]{\left[ #1 \; \middle\vert \; #2 \right]}
-\newcommand{\subsc}[2]{#1_{\textrm{\tiny #2}}}
+\newcommand{\subsctext}[2]{#1_{\textrm{\tiny #2}}}
+\newcommand{\subscmath}[2]{#1_{\textrm{\tiny \ensuremath{{}_{#2}}}}}
 \newcommand{\intexpsem}[1]{\bbrackets{#1}_{\textrm{\tiny intexp}}}
 \newcommand{\assertsem}[1]{\bbrackets{#1}_{\textrm{\tiny assert}}}
 
@@ -97,6 +104,25 @@
 \newcommand{\elemarith}{\substack{+\\-\\\times\\\div}}
 \newcommand{\plustimes}{\substack{+\\ \times}}
 \newcommand{\twostack}[2]{\substack{#1\\#2}}
+\newcommand{\toc}{\xrightarrow[c]{}}
+\newcommand{\abort}{\textrm{abort}}
+
+\newcommand{\cskip}{\textrm{skip}}
+\newcommand{\cseq}[2]{#1 ;\; #2}
+\newcommand{\cif}[3]{\textrm{if } #1 \textrm{ then } #2 \textrm{ else } #3}
+\newcommand{\cwhile}[2]{\textrm{while } #1 \textrm{ do } #2}
+\newcommand{\cassign}[2]{#1 := #2}
+\newcommand{\cfail}{\textrm{fail}}
+\newcommand{\cout}[1]{\textrm{!} #1}
+\newcommand{\cin}[1]{\textrm{?} #1}
+\newcommand{\cnew}[3]{\textrm{newvar } #1 := #2 \textrm{ in } #3}
+
+\newcommand{\ibot}{\iota_\bot}
+\newcommand{\iterm}{\iota_{\textrm{term}}}
+\newcommand{\iabort}{\iota_{\textrm{abort}}}
+\newcommand{\iout}{\iota_{\textrm{out}}}
+\newcommand{\iin}{\iota_{\textrm{in}}}
+\newcommand{\botO}{\bot_\Omega}
 
 \newcommand{\footnoteeqn}[2][1]{\addtocounter{footnote}{#1}\footnotetext{#2}}
 
@@ -114,6 +140,17 @@
 \maketitle
 
 \tableofcontents
+
+\DefineFNsymbols{footsym}{
+	{\tiny\ding{168}}
+		{\tiny\ding{169}}
+		{\tiny\ding{170}}
+		{\tiny\ding{171}}
+		{\tiny\ding{72}}
+		{\tiny\ding{96}}
+		{\tiny\ding{44}}
+}
+\setfnsymbol{footsym}
 
 \input{chapter1.tex}
 \input{chapter2.tex}
