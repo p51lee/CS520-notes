@@ -30,8 +30,9 @@
 \usepackage{listings}
 \usepackage{pifont}
 \usepackage{tikz-cd}
+\usepackage[capitalise,nameinlink]{cleveref}
 
-
+\crefformat{section}{#2\S{}#1#3}
 
 \newtheoremstyle{tabstyle}
   {\topsep} % Space above
@@ -126,12 +127,14 @@
 \newcommand{\iin}{\iota_{\textrm{in}}}
 \newcommand{\botO}{\bot_\Omega}
 
+\newcommand{\defeq}{\stackrel{\text{def}}{=}}
+
 \newcommand{\footnoteeqn}[2][1]{\addtocounter{footnote}{#1}\footnotetext{#2}}
 
 \renewcommand{\thefootnote}{\fnsymbol{footnote}}
 
-\title{Theory of Programming Languages}
-\author{Your Name Here}
+\title{\Huge Theory of Programming Languages}
+\author{Hongseok Yang}
 \date{\today}
 
 \OnehalfSpacing

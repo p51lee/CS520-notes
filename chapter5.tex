@@ -1,3 +1,861 @@
 \chapter{Transition Semantics}
 
-\todo
+\section{Motivation or objective}
+
+\begin{enumcirc}
+	%
+	\item
+	%
+	So far we defined the meanings of programs in imperative languages using the
+	denotational semantics.
+	%
+	A good denotational semantics reveals an underlying mathematical structure of a
+	programming language and hides the intermediate steps of computation as much as
+	possible.
+	%
+	Also, it is compositional, and lets us reason about a piece of program code
+	even when we do not know its surrounding program context.
+	%
+	\item
+	%
+	However, when a programming language has advanced or complex language
+	constructs, defining a denotational semantics of the language may be difficult.
+	%
+	Also, sometimes we want to have a mathematical semantics of programs that tells
+	us what happens in the middle of computation.
+	%
+	\item
+	%
+	The operational semantics is an alternative approach to give mathematical
+	meanings to programs.
+	%
+	It is non-compositional, and does not hide the intermediate steps of
+	computation.
+	%
+	But it is usually very simple and also rigorous or formal enough to enable a
+	mathematical study of a programming language and language tools such as
+	compiler and program verifier.
+	%
+	Also, an operational semantics of a programming language often serves as a
+	blueprint of an interpreter or a compiler of the language.
+	%
+	\item
+	%
+	In this chapter, we will study the so-called \ul{small-step} operational
+	semantics, which Reynolds calls transition semantics.
+	%
+\end{enumcirc}
+
+\section{Main idea of the small-step operational semantics}
+
+\begin{enumcirc}
+	%
+	\item
+	%
+	The key idea is to formalize one computation step of a program using a
+	relation, called transition relation.
+	%
+	\item
+	%
+	Typically, a small-step operational semantics has two main parts.
+	%
+	\begin{enumrm}
+		%
+		\item
+		%
+		$\Gamma$ \dots a set of configurations.
+
+		Usually, $\Gamma = \Gamma_N \cup \Gamma_T$ for some sets $\Gamma_N$, $\Gamma_T$
+		with $\Gamma_N \cap \Gamma_T = \emptyset$.
+		%
+		Each element $\gamma \in \Gamma$ describes the status of a machine that runs a
+		program.
+		%
+		If $\gamma \in \Gamma_N$, it is called \ul{nonterminal configuration} and the
+		execution of its program is not finished yet.
+		%
+		If $\gamma \in \Gamma_T$, it is called \ul{terminal configuration} and the
+		execution of its program is finished.
+		%
+		\item
+		%
+		$\rightarrow \;\subseteq \Gamma_N \times \Gamma$
+		\dots transition relation.
+
+		Intuitively, $\prths{\gamma, \gamma^\prime} \in\; \rightarrow$
+		%
+		\footnote{typically written as $\gamma \rightarrow \gamma^\prime$}
+		%
+		means that one computation step changes the status of a machine from $\gamma$
+		to $\gamma^\prime$.
+		%
+		Note that $\gamma$ has to be a nonterminal configuration because of the domain
+		of $\rightarrow$.
+		%
+		This condition is consistent with the intuition behind nonterminal and terminal
+		configurations.
+		%
+	\end{enumrm}
+	%
+	Defining a small-step operational semantics amounts to defining $\Gamma$,
+	$\Gamma_N$, $\Gamma_T$, and $\rightarrow$.
+	%
+	We will see a few examples of the operational semantics in this lecture.
+	%
+	Often if we define $\Gamma$, $\Gamma_N$, $\Gamma_T$, then the definition of
+	$\rightarrow$ follows almost automatically.
+	%
+	This is a bit similar to the situation in the denotational semantics that if
+	the form of the interpretation function for commands $\bbrackets{-}$ is
+	determined, the actual definition of the function follows almost automatically.
+	%
+	\item
+	%
+	When defining the $\rightarrow$ relation, we usually use the inference rule
+	notation $\inferrule{\varphi_1 \;\cdots \;\varphi_n}{\varphi}$ that you saw
+	when we discussed Hoare logic.
+	%
+\end{enumcirc}
+
+\section{Small-step operational semantics of the simple imperative language}
+
+\begin{enumcirc}
+	%
+	\item
+	%
+	Let's try to give the operational semantics to the simple imperative language
+	that we studied.
+	%
+	Here is a reminder of this abstract grammar:
+	%
+	\begin{grammar}
+		<comm> ::=
+		skip
+		\alt <var> := <intexp>
+		\alt <comm> ; <comm>
+		\alt if <boolexp> then <comm> else <comm>
+		\alt while <boolexp> do <comm>
+		\alt while <boolexp> do <comm>
+	\end{grammar}
+	%
+	\item
+	%
+	What should we do?
+	%
+	First, we have to define
+	%
+	\ul{the set of nonterminal configurations}
+	%
+	\footnote{$\Gamma_N$}
+	%
+	and
+	%
+	\ul{that of terminal configurations}.
+	%
+	\footnote{$\Gamma_T$}
+
+	Here are our definitions:
+	%
+	\[
+		\Gamma_N \defeq \chevrons{comm}\footnotemark \times \Sigma\footnotemark
+		\qquad
+		\Gamma_T \defeq \Sigma\footnotemark
+	\]
+	\footnoteeqn[-2]{command that records the remaining computation}
+	\footnoteeqn{the current state of a machine}
+	\footnoteeqn{the $\chevrons{comm}$ part is missing because there is no remaining computation}
+	%
+	The set of configurations is the union of the above two sets.
+	%
+	\item
+	%
+	Second, we should define a binary relation
+	%
+	\[
+		\rightarrow \;\subseteq \Gamma_N \times \Gamma,
+	\]
+	%
+	called transition relation, that describes single-step computation.
+	%
+	We write $\prths{\gamma, \gamma^\prime}$
+	%
+	to mean $\prths{\gamma, \gamma^\prime} \in\; \rightarrow$.
+	%
+	We define the transition relation $\rightarrow$ using the inference rule
+	notation.
+	%
+	\[
+		\begin{array}{c}
+			\inferrule
+			{\ }
+			{
+				\chevrons{\cskip, \sigma}
+				\rightarrow
+				\sigma
+			}
+			\qquad \qquad
+			\inferrule
+			{\ }
+			{
+				\chevrons{\cassign{v}{e}, \sigma}
+				\rightarrow
+				\sigma\prths{v \mapsto \bbrackets{e}\sigma}
+			}
+			\\[2em]
+			\inferrule
+			{
+				\chevrons{c_1, \sigma}
+				\rightarrow
+				\sigma^\prime
+			}
+			{
+				\chevrons{\cseq{c_1}{c_2}, \sigma}
+				\rightarrow
+				\chevrons{c_2, \sigma^\prime}
+			}
+			\qquad \qquad
+			\inferrule
+			{
+				\chevrons{c_1, \sigma}
+				\rightarrow
+				\chevrons{c_1^\prime, \sigma^\prime}
+			}
+			{
+				\chevrons{\cseq{c_1}{c_2}, \sigma}
+				\rightarrow
+				\chevrons{\cseq{c_1^\prime}{c_2}, \sigma^\prime}
+			}
+			\\[2em]
+			\inferrule
+			{
+				\
+			}
+			{
+				\chevrons{\cif{b}{c_1}{c_2}, \sigma}
+				\rightarrow
+				\chevrons{c_1, \sigma}
+			}
+			\prths{\bbrackets{b}\sigma = \ttt}
+			\\[2em]
+			\inferrule
+			{
+				\
+			}
+			{
+				\chevrons{\cif{b}{c_1}{c_2}, \sigma}
+				\rightarrow
+				\chevrons{c_2, \sigma}
+			}
+			\prths{\bbrackets{b}\sigma = \fff}
+			\\[2em]
+			\inferrule
+			{
+				\
+			}
+			{
+				\chevrons{\cwhile{b}{c}, \sigma}
+				\rightarrow
+				\sigma
+			}
+			\prths{\bbrackets{b}\sigma = \fff}
+			\\[2em]
+			\inferrule
+			{
+				\
+			}
+			{
+				\chevrons{\cwhile{b}{c}, \sigma}
+				\rightarrow
+				\chevrons{\cseq{c}{\cwhile{b}{c}}, \sigma}
+			}
+			\prths{\bbrackets{b}\sigma = \ttt}
+		\end{array}
+	\]
+	%
+	Note that the right-hand side of $\rightarrow$ may include a command that is
+	not a sub-command of the one on the left-hand side.
+	%
+	Look at
+	%
+	$ \chevrons{\cseq{c_1}{c_2}, \sigma}
+		\rightarrow
+		\chevrons{\cseq{c_1^\prime}{c_2}, \sigma^\prime} $
+	%
+	and
+	%
+	$ \chevrons{\cwhile{b}{c}, \sigma}
+		\rightarrow
+		\chevrons{\cseq{c}{\cwhile{b}{c}}, \sigma} $.
+	%
+	This indicates that the semantics is not compositional.
+	%
+	All these rules correspond to our intuitive understading of one computation
+	step.
+	%
+	They can form the basis of the implementation of a simple interpreter, which
+	just needs to run the $\rightarrow$ step repeatedly.
+	%
+	\item
+	%
+	Formal properties of the operational semantics:
+	%
+	\begin{enumrm}
+		%
+		\item
+		%
+		$\gamma \rightarrow \gamma_1
+			\textrm{ and }
+			\gamma \rightarrow \gamma_2
+			\quad\Rightarrow\quad
+			\gamma_1 = \gamma_2$.
+
+		The semantics is deterministic.
+		%
+		\item
+		%
+		$\forall \gamma \in \Gamma_N \; \exists \gamma^\prime
+			\textrm{ s.t. }
+			\gamma \rightarrow \gamma^\prime$.
+
+		In this semantics, executions never get stuck.
+		%
+		\item
+		%
+		From (i) to (ii), it follows that for every
+		%
+		$\gamma \in \Gamma$,
+		%
+		there exists a unique maximal sequence.
+		%
+		\[
+			\gamma_0, \gamma_1, \gamma_2, \cdots, \gamma_n\footnotemark
+		\]
+		\footnoteeqn[0]{may be infinite}
+		%
+		such that
+		%
+		\begin{multline*}
+			\gamma = \gamma_0 \wedge
+			\gamma_0 \rightarrow \gamma_1 \rightarrow \gamma_2 \rightarrow \cdots
+			\rightarrow \gamma_n
+			\\ \wedge \gamma_n \textrm{ is a terminal configuration or } n \textrm{ is infinite}.
+		\end{multline*}
+		%
+		This maximal finite or infinite sequence represents the full computation
+		starting from $\gamma$.
+		%
+		\item
+		%
+		We write $\gamma \uparrow$ if the maximal execution sequence from $\gamma$ is
+		infinite.
+		%
+		Then, for all commands $c$ and states $\sigma$,
+		%
+		\begin{align*}
+			\bbrackets{c}\sigma = \bot          &
+			\quad \textrm{iff} \quad
+			\chevrons{c, \sigma} \uparrow         \\
+			\bbrackets{c}\sigma = \sigma^\prime &
+			\quad \textrm{iff} \quad
+			\chevrons{c, \sigma} \rightarrow^* \sigma^\prime \footnotemark
+		\end{align*}
+		\footnoteeqn[0]{
+			reflexive and transitive closure of $\rightarrow$, i.e.
+			$\rightarrow^* \defeq \bigcup_n^\infty \prths{\rightarrow}^n$
+		}
+	\end{enumrm}
+	%
+	\begin{exercise}
+		%
+		Prove (i), (ii), and (iv).
+		%
+	\end{exercise}
+	%
+	\begin{exercise}
+		%
+		Explain why the reasoning in (iii) is true.
+		%
+	\end{exercise}
+	%
+\end{enumcirc}
+
+\section{Extension with newvar}
+
+\begin{enumcirc}
+	%
+	\item
+	%
+	Extend the language with variable declaration:
+	%
+	\begin{center}
+		\begin{minipage}[c]{0.6\textwidth}
+			\begin{grammar}
+				<comm> ::=
+				\dots\;
+				| newvar <var> := <intexp> in <comm>
+			\end{grammar}
+		\end{minipage}
+	\end{center}
+	%
+	\item
+	%
+	How should we modify the $\rightarrow$ relation?
+	%
+	Add a rule for newvar:
+	%
+	\begin{enumrm}
+		%
+		\item
+		%
+		Option 1:
+		%
+		\[
+			\inferrule
+			{\ }
+			{
+				\chevrons{\cnew{v}{e}{c}, \sigma}
+				\rightarrow
+				\chevrons{\cseq{c}{v:=n}, \aug{\sigma}{v \mapsto \bbrackets{e}\sigma}}
+			}
+		\]
+		%
+		\item
+		%
+		Option 2
+		%
+		\[
+			\inferrule
+			{
+				\chevrons{c, \aug{\sigma}{v : \bbrackets{e}\sigma}}
+				\rightarrow
+				\sigma^\prime
+			}
+			{
+				\chevrons{\cnew{v}{e}{c}, \sigma}
+				\rightarrow
+				\aug{\sigma^\prime}{v : \bbrackets{e}\sigma}
+			}
+		\]
+		%
+		\item
+		%
+		Both options are acceptable.
+		%
+		But option 2 is better.
+		%
+		Only option 2 works when we extend the language with primitives for concurrent
+		executions.
+		%
+	\end{enumrm}
+	%
+	\item
+	%
+	Note that we did not change $\Gamma_N$ and $\Gamma_T$.
+	%
+	Thus, adding newvar doesn't change the operational semantics much.
+	%
+	In a sense, this small change means that newvar doesn't change the language
+	much, either.
+	%
+\end{enumcirc}
+
+\section{Adding fail} \label{sec:5:fail}
+
+\begin{center}
+	\begin{minipage}[c]{0.26\textwidth}
+		\begin{grammar}
+			<comm> ::=
+			\dots\;
+			| fail
+		\end{grammar}
+	\end{minipage}
+\end{center}
+
+\begin{enumcirc}
+	%
+	\item
+	%
+	When we add fail, we have to change the set $\Gamma_T$ of terminal
+	configuration, because we now have two types of terminations, normal one and
+	abnormal one.
+	%
+	\[
+		\Gamma_T \defeq \Sigma \cup \braces{\abort} \times \Sigma
+		\quad
+		(\textrm{or } = \Sigma + \Sigma)
+	\]
+	%
+	$\Gamma_N$ remains unchanged.
+	%
+	\item
+	%
+	Since $\Gamma_T$ and so $\Gamma$ are changed, we should change the definition
+	of $\rightarrow$.
+	%
+	We will also have to add a rule for fail.
+	%
+	Here is the new set of rules.
+	%
+	\[
+		\begin{array}{c}
+			\inferrule
+			{\ }
+			{\chevrons{\cfail, \sigma} \rightarrow \chevrons{\abort, \sigma}}
+			\footnotemark
+			\qquad \quad
+			\inferrule
+			{\ }
+			{\chevrons{\cskip, \sigma} \rightarrow \sigma}
+			\qquad \quad
+			\inferrule
+			{\ }
+			{
+				\chevrons{\cassign{v}{e}, \sigma}
+				\rightarrow
+				\sigma\prths{v \mapsto \bbrackets{e}\sigma}
+			}
+			\\[2em]
+			\inferrule
+			{
+			}
+			{
+				\chevrons{\cif{b}{c_1}{c_2}, \sigma}
+				\rightarrow
+				\chevrons{c_1, \sigma}
+			}
+			\prths{\bbrackets{b}\sigma = \ttt}
+			\\[2em]
+			\inferrule
+			{
+			}
+			{
+				\chevrons{\cif{b}{c_1}{c_2}, \sigma}
+				\rightarrow
+				\chevrons{c_2, \sigma}
+			}
+			\prths{\bbrackets{b}\sigma = \fff}
+			\\[2em]
+			\inferrule
+			{
+				\chevrons{c_1, \sigma}
+				\rightarrow
+				\chevrons{c_1^\prime, \sigma^\prime}
+			}
+			{
+				\chevrons{\cseq{c_1}{c_2}, \sigma}
+				\rightarrow
+				\chevrons{\cseq{c_1^\prime}{c_2}, \sigma^\prime}
+			}
+			\qquad \quad
+			\inferrule
+			{
+				\chevrons{c_1, \sigma}
+				\rightarrow
+				\sigma^\prime
+			}
+			{
+				\chevrons{\cseq{c_1}{c_2}, \sigma}
+				\rightarrow
+				\chevrons{c_2, \sigma^\prime}
+			}
+			\\[2em]
+			\inferrule
+			{
+				\chevrons{c_1, \sigma}
+				\rightarrow
+				\chevrons{\abort, \sigma^\prime}
+			}
+			{
+				\chevrons{\cseq{c_1}{c_2}, \sigma}
+				\rightarrow
+				\chevrons{\abort, \sigma^\prime}
+			}
+			\footnotemark
+			\\[2em]
+			\inferrule
+			{
+			}
+			{
+				\chevrons{\cwhile{b}{c}, \sigma}
+				\rightarrow
+				\sigma
+			}
+			\prths{\bbrackets{b}\sigma = \fff}
+			\\[2em]
+			\inferrule
+			{
+				\chevrons{c, \sigma}
+				\rightarrow
+				\sigma^\prime
+			}
+			{
+				\chevrons{\cwhile{b}{c}, \sigma}
+				\rightarrow
+				\chevrons{\cseq{c}{\cwhile{b}{c}}, \sigma^\prime}
+			}
+			\prths{\bbrackets{b}\sigma = \ttt}
+			\\[2em]
+			\inferrule
+			{
+				\chevrons{c, \aug{\sigma}{v : \bbrackets{e}\sigma}}
+				\rightarrow
+				\chevrons{\abort, \sigma^\prime}
+			}
+			{
+				\chevrons{\cnew{v}{e}{c}, \sigma}
+				\rightarrow
+				\chevrons{\abort, \aug{\sigma^\prime}{v : \sigma\prths{v}}}
+			}
+			\footnotemark
+			\\[2em]
+			\inferrule
+			{
+				\chevrons{c, \aug{\sigma}{v : \bbrackets{e}\sigma}}
+				\rightarrow
+				\sigma^\prime
+			}
+			{
+				\chevrons{\cnew{v}{e}{c}, \sigma}
+				\rightarrow
+				\aug{\sigma^\prime}{v : \sigma\prths{v}}
+			}
+			\\[2em]
+			\inferrule
+			{
+				\chevrons{c, \aug{\sigma}{v : \bbrackets{e}\sigma}}
+				\rightarrow
+				\chevrons{c^\prime, \sigma^\prime}
+			}
+			{
+				\chevrons{\cnew{v}{e}{c}, \sigma}
+				\rightarrow
+				\chevrons{
+					\cnew{v}{\sigma^\prime\prths{v}}{c^\prime},
+					\aug{\sigma^\prime}{v : \sigma\prths{v}}
+				}
+			}
+		\end{array}
+	\]
+	\footnoteeqn[-2]{new rule: due to fail}
+	\footnoteeqn{new rule: due to the change of $\Gamma_T$}
+	\footnoteeqn{new rule: due to the change of $\Gamma_T$}
+	%
+\end{enumcirc}
+
+\section{Handling input and output}
+
+\begin{center}
+	\begin{minipage}[c]{0.4\textwidth}
+		\begin{grammar}
+			<comm> ::=
+			\dots\;
+			| !<var>
+			| ?<var>
+		\end{grammar}
+	\end{minipage}
+\end{center}
+
+\begin{enumcirc}
+	%
+	\item
+	%
+	This time we have to change the form or type of $\rightarrow$.
+	%
+	It is no longer a binary relation, but a ternary relation.
+	%
+	\[
+		\rightarrow \;\subseteq \Gamma_N \times \Lambda \times \Gamma
+	\]
+	%
+	\[
+		\lambda \in \Lambda \defeq
+		\braces{\varepsilon}\footnotemark \cup
+		\set{\cin{n}}{n \in \Z}\footnotemark \cup
+		\set{\cout{n}}{n \in \Z}\footnotemark
+	\]
+	\footnoteeqn[-2]{transition or execution without input or output}
+	\footnoteeqn{transition with an input}
+	\footnoteeqn{transition with an output}
+	%
+	We write
+	%
+	$\chevrons{c, \sigma} \xrightarrow{\lambda} \gamma$
+	%
+	to mean
+	%
+	$\chevrons{\chevrons{c, \sigma}, \lambda, \gamma} \in\; \rightarrow$.
+	%
+	We also often omit $\lambda$ if $\lambda = \varepsilon$.
+	%
+	\item
+	%
+	Why do we make this change?
+	%
+	It is because adding $\cin{n}$ and $\cout{n}$ to the language makes it
+	necessary to describe some aspects of intermediate steps of computations
+	explicitly.
+	%
+	\item
+	%
+	We include all the rules that (except the ones for $\cseq{c_1}{c_2}$ and
+	newvar) that we defined in \cref{sec:5:fail}.
+	%
+	Of course, the occurrences of $\rightarrow$ in those old rules should be
+	understood as $\xrightarrow{\varepsilon}$ with $\varepsilon$ omitted for
+	simplicity.
+	%
+	In addition to these rules, we have the following rules:
+	%
+	\[
+		\begin{array}{c}
+			\inferrule
+			{
+				\
+			}
+			{
+				\chevrons{\cin{v}, \sigma}
+				\xrightarrow{\cin{n}}
+				\aug{\sigma}{v : \sigma\prths{n}}
+			}
+			\qquad \quad
+			\inferrule
+			{
+				\
+			}
+			{
+				\chevrons{\cout{e}, \sigma}
+				\xrightarrow{\cout{\bbrackets{e}\sigma}}
+				\sigma
+			}
+			\\[2em]
+			\inferrule
+			{
+				\chevrons{c_0, \sigma}
+				\xrightarrow{\lambda}
+				\sigma^\prime
+			}
+			{
+				\chevrons{\cseq{c_0}{c_1}, \sigma}
+				\xrightarrow{\lambda}
+				\chevrons{c_1, \sigma^\prime}
+			}
+			\qquad \quad
+			\inferrule
+			{
+				\chevrons{c_0, \sigma}
+				\xrightarrow{\lambda}
+				\chevrons{c_0^\prime, \sigma^\prime}
+			}
+			{
+				\chevrons{\cseq{c_0}{c_1}, \sigma}
+				\xrightarrow{\lambda}
+				\chevrons{\cseq{c_0^\prime}{c_1}, \sigma^\prime}
+			}
+			\\[2em]
+			\inferrule
+			{
+				\chevrons{c_0, \sigma}
+				\xrightarrow{\lambda}
+				\chevrons{\abort, \sigma^\prime}
+			}
+			{
+				\chevrons{\cseq{c_0}{c_1}, \sigma}
+				\xrightarrow{\lambda}
+				\chevrons{\abort, \sigma^\prime}
+			}
+			\\[2em]
+			\inferrule
+			{
+				\chevrons{c, \aug{\sigma}{v : \bbrackets{e}\sigma}}
+				\xrightarrow{\lambda}
+				\sigma^\prime
+			}
+			{
+				\chevrons{\cnew{v}{e}{c}, \sigma}
+				\xrightarrow{\lambda}
+				\aug{\sigma^\prime}{v : \sigma\prths{v}}
+			}
+			\\[2em]
+			\inferrule
+			{
+				\chevrons{c, \aug{\sigma}{v : \bbrackets{e}\sigma}}
+				\xrightarrow{\lambda}
+				\chevrons{\abort, \sigma^\prime}
+			}
+			{
+				\chevrons{\cnew{v}{e}{c}, \sigma}
+				\xrightarrow{\lambda}
+				\chevrons{\abort, \aug{\sigma^\prime}{v : \sigma\prths{v}}}
+			}
+			\\[2em]
+			\inferrule
+			{
+				\chevrons{c, \aug{\sigma}{v : \bbrackets{e}\sigma}}
+				\xrightarrow{\lambda}
+				\chevrons{c^\prime, \sigma^\prime}
+			}
+			{
+				\chevrons{\cnew{v}{e}{c}, \sigma}
+				\xrightarrow{\lambda}
+				\chevrons{
+					\cnew{v}{\sigma^\prime\prths{v}}{c^\prime},
+					\aug{\sigma^\prime}{v : \sigma\prths{v}}
+				}
+			}
+		\end{array}
+	\]
+	%
+	Whenever an old rule contains a premise, we copy the rule and put $\lambda$
+	above $\rightarrow$ in the premise and the conclusion, so that the label
+	$\lambda$ gets propagated from the execution of a subcommand to that of the
+	original command.
+	%
+	\item
+	%
+	This operational semantics corresponds to the denotational semantics that we
+	studied.
+	%
+	The correspondence is formalized by the function $F$ in page 134 of the
+	textbook:
+	%
+	\[
+		F\prths{\gamma} =
+		\left\{
+		\begin{array}{ll}
+			\bot                                                 &
+			\text{when }
+			\gamma \uparrow                                        \\
+			\iterm\prths{\sigma'}                                &
+			\text{when }
+			\gamma \rightarrow^* \sigma'                           \\
+			\iabort\prths{\sigma'}                               &
+			\text{when }
+			\gamma \rightarrow^* (\textit{abort}, \sigma')         \\
+			\iout \prths{n, F_{\gamma''}}                        &
+			\text{when }
+			\exists \gamma' \in \Gamma.
+			\; \gamma \rightarrow^* \gamma' \text{ and }
+			\gamma' \! \xrightarrow{\cout{n}} \gamma''             \\
+			\iin \prths {\lambda n \in \mathbb{Z}. F_{\gamma_n}} &
+			\text{when }
+			\exists \gamma' \in \Gamma.
+			\forall n \in \mathbb{Z}.
+			\gamma \rightarrow^* \gamma' \text{ and }
+			\gamma' \xrightarrow{\cin{n}} \gamma_n.                \\
+		\end{array}
+		\right.
+	\]
+	%
+	Intuitively, $F$ runs a configuration until it finishes, or outputs a number,
+	or waits for an input.
+	%
+	$F$ then returns what it gets when it completes this execution.
+
+	In a sense, the correspondence says that the denotational semantics comes from
+	the operational semantics after unobservable intermediate states are abstracted
+	away.
+	%
+	For detail, look at the textbook.
+	%
+\end{enumcirc}
+
