@@ -495,9 +495,9 @@ state of execution modulo the restoration of values of global variables.
 		For instance,
 		%
 		\begin{align*}
-			f_*\prths{\iout\prths{3, \iout\prths{4, \iterm\prths{\sigma}}}}       & = \iout\prths{3, \iout\prths{4, f\prths{\sigma}}} \\
-			f_*\prths{\iout\prths{3, \iabort{\sigma}}}                            & = \iout\prths{3, \iabort\prths{\sigma}}           \\
-			h_\dagger\prths{\iout\prths{3, \iout\prths{4, \iterm\prths{\sigma}}}} & = \iout\prths{3, \iout\prths{4, h\prths{\sigma}}} \\
+			f_*\prths{\iout\prths{3, \iout\prths{4, \iterm\prths{\sigma}}}}       & = \iout\prths{3, \iout\prths{4, f\prths{\sigma}}}               \\
+			f_*\prths{\iout\prths{3, \iabort{\sigma}}}                            & = \iout\prths{3, \iabort\prths{\sigma}}                         \\
+			h_\dagger\prths{\iout\prths{3, \iout\prths{4, \iterm\prths{\sigma}}}} & = \iout\prths{3, \iout\prths{4, \iterm\prths{h\prths{\sigma}}}} \\
 			h_\dagger\prths{\iout\prths{3, \iabort{\sigma}}}                      & = \iout\prths{3, \iabort\prths{h\prths{\sigma}}}
 		\end{align*}
 		%
