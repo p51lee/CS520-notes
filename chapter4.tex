@@ -598,3 +598,237 @@ state of execution modulo the restoration of values of global variables.
 		%
 	\end{exercise}
 \end{enumcirc}
+
+\section{Continuation Semantics}
+
+\begin{enumcirc}
+	%
+	\item
+	%
+	The continuation semantics is an alternative, more general way of interpreting
+	commands.
+	%
+	The key concept here is continuation, which is some mathematical entity
+	representing the rest of computation.
+	%
+	Intuitively, a continuation denotes what will happen all the way until the end
+	when the current command finishes normally.
+	%
+	In the continuation semantics, we interpret a command as a function that takes
+	a continuation $\kappa$ and a state $\sigma$, and computes (or returns) the
+	ultimate answer of the entire computation.
+	%
+	\item
+	%
+	Let's ignore the command ``$\cfail$'' for now.
+	%
+	Mathematically, the continuation semantics defines the following function:
+	%
+	\[
+		\supsctext{\bbrackets{-}}{cont} \in
+		\brackets{\chevrons{\textit{comm}} \to \prths{\Sigma \toc \Omega} \toc \Sigma \toc \Omega}
+	\]
+	%
+	Compare it with the (direct) semantics that we looked at earlier:
+	%
+	\[
+		\bbrackets{-} \in \brackets{\chevrons{\textit{comm}} \to \Sigma \toc \Omega}
+	\]
+	%
+	We have the extra part
+	%
+	``$\prths{\Sigma \toc \Omega} \toc \Sigma$'',
+	%
+	which expresses that $\supsctext{\bbrackets{-}}{cont}$ takes an additional
+	continuation parameter $\kappa$, compared with the (direct) semantics
+	$\bbrackets{-}$.
+
+	Thus, when $\kappa \in \brackets{\Sigma \toc \Omega}$ and $\sigma \in \Sigma$,
+	%
+	\[
+		\omega\footnotemark =
+		\supsctext{\bbrackets{c}}{cont}
+		\prths{\kappa\footnotemark}
+		\prths{\sigma\footnotemark} \in \Omega
+	\]
+	%
+	\footnoteeqn[-2]{result of running $c$ and then $\kappa$ at the state $\sigma$}
+	\footnoteeqn{computation to be done after $c$}
+	\footnoteeqn{initial state}
+	%
+	\item
+	%
+	A good way to learn this continuation semantics is to complete the definition
+	of $\supsctext{\bbrackets{-}}{cont}$ based on the intuition that we discussed
+	so far.
+	%
+	So, hide the semantic clause in each case, and try to rediscover the clause for
+	yourself.
+	%
+	\begin{align*}
+		\supsctext{\bbrackets{c}}{cont}                               &
+		\in \brackets{\brackets{\Sigma \toc \Omega} \toc \Sigma \toc \Omega}                                                                  \\
+		\supsctext{\bbrackets{\cskip}}{cont}\kappa\;\sigma            &
+		= \kappa\prths{\sigma}                                                                                                                \\
+		\supsctext{\bbrackets{\cseq{c_0}{c_1}}}{cont}\kappa\;\sigma   &
+		= \supsctext{\bbrackets{c_0}}{cont}
+		\prths{\lambda \sigma^\prime.\; \supsctext{\bbrackets{c_1}}{cont}\kappa\;\sigma^\prime}\sigma                                         \\
+		\subsctext{\bbrackets{\cif{b}{c_0}{c_1}}}{cont}\kappa\;\sigma &
+		= \cif{\bbrackets{b}\prths{\sigma}}{\supsctext{\bbrackets{c_0}}{cont}\kappa\;\sigma}{\supsctext{\bbrackets{c_1}}{cont}\kappa\;\sigma} \\
+		\subsctext{\bbrackets{\cwhile{b}{c_0}}}{cont}\kappa\;\sigma   &
+		= \prths{\subscmath{Y}{\Sigma \toc \Omega} \prths{F}} \prths{\sigma}
+		= \prths{\bigsqcup_{n=0}^\infty F^n\prths{\bot}}\prths{\sigma}                                                                        \\
+		\textrm{where } F                                             &
+		\in \prths{\brackets{\Sigma \toc \Omega} \toc \brackets{\Sigma \toc \Omega}}                                                          \\
+		F \prths{\kappa^\prime}\prths{\sigma^\prime}                  &
+		= \cif{\bbrackets{b}\prths{\sigma^\prime}}
+		{\supsctext{\bbrackets{c_0}}{cont}\kappa^\prime\sigma^\prime}
+		{\kappa\prths{\sigma^\prime}}                                                                                                         \\
+	\end{align*}
+	%
+	As usual, the most tricky part is the case for while.
+	%
+	Note that we define the operator $F$ on the domain of continuation,
+	%
+	$\brackets{\Sigma \toc \Omega}$,
+	%
+	not on the domain of commands
+	%
+	$\brackets{\brackets{\Sigma \toc \Omega} \toc \Sigma \toc \Omega}$,
+	%
+	and then we use the least fixed point of $F$, which denotes some continuation
+	in
+	%
+	$\brackets{\Sigma \toc \Omega}$.
+	%
+	In the (direct) semantics, we used the domain of commands.
+	%
+	\item
+	%
+	Our definition is not complete.
+	%
+	We should define
+	%
+	$\supsctext{\bbrackets{\cin{v}}}{cont}$,
+	%
+	$\supsctext{\bbrackets{\cout{e}}}{cont}$ and
+	%
+	$\supsctext{\bbrackets{\cnew{v}{e}{c}}}{cont}$.
+	%
+	\begin{align*}
+		\supsctext{\bbrackets{\cin{v}}}{cont}\kappa\;\sigma        &
+		= \iin\prths{\lambda n \in \Z.\; \kappa\prths{\aug{\sigma}{v:n}}}\footnotemark \\
+		\supsctext{\bbrackets{\cout{e}}}{cont}\kappa\;\sigma       &
+		= \iout\prths{\bbrackets{e}\sigma, \kappa\prths{\sigma}}\footnotemark          \\
+		\supsctext{\bbrackets{\cnew{v}{e}{c}}}{cont}\kappa\;\sigma &
+		= \supsctext{\bbrackets{c}}{cont}
+		\prths{\lambda \sigma^\prime.\; \kappa\prths{\aug{\sigma^\prime}{v:\sigma\prths{v}}}}
+		\aug{\sigma}{v: \bbrackets{e}{\sigma}}
+	\end{align*}
+	\footnoteeqn[-1]{recall $\iout \in \brackets{\Z \times \Omega \toc \Omega}$}
+	\footnoteeqn{recall $\iin \in \brackets{\brackets{\Z \toc \Omega} \toc \Omega}$}
+	%
+	\item
+	%
+	The (direct) semantics and the continuation semantics are closely related.
+	%
+	In a sense, this should be the case because both semantics are dealing with the
+	same thing.
+	%
+	Here is the formal relationship:
+	%
+	\[
+		\supsctext{\bbrackets{c}}{cont}\kappa\;\sigma =
+		\kappa_* \prths{\bbrackets{c}\prths{\sigma}}
+	\]
+	%
+	\begin{exercise}
+		%
+		Prove the above equation.
+		%
+	\end{exercise}
+	%
+	\item
+	%
+	So far we didn't consider the command fail.
+	%
+	Now it is time to stop ignoring it.
+	%
+	Can we add a semantic clause for
+	%
+	$\supsctext{\bbrackets{\cfail}}{cont}$?
+	%
+	What about the following?
+	%
+	\[
+		\supsctext{\bbrackets{\cfail}}{cont}\kappa\;\sigma = \iabort\prths{\sigma}
+	\]
+	%
+	Unfortunately, this simple definition doesn't work:
+	%
+	\begin{align*}
+		     & \supsctext{\bbrackets{\cnew{x}{1}{\cfail}}}{cont}\kappa\;\sigma
+		\quad \textrm{where } \sigma\prths{x} = 0                              \\
+		=    & \supsctext{\bbrackets{\cfail}}{cont}
+		\prths{\lambda \sigma^\prime.\; \kappa\prths{\aug{\sigma^\prime}{x:\sigma\prths{x}}}}
+		\aug{\sigma}{x: \bbrackets{1}{\sigma}}                                 \\
+		=    & \; \iabort\prths{\aug{\sigma}{x:1}}                             \\
+		\neq & \; \iabort\prths{\sigma}                                        \\
+	\end{align*}
+	%
+	\item
+	%
+	One solution is to pass two continuations.
+	%
+	One for normal computation and the other for aborted computation.
+	%
+	\begin{align*}
+		\supsctext{\bbrackets{-}}{cont}_2                                             &
+		\in \brackets{
+			\chevrons{\textit{comm}} \to
+			\brackets{\Sigma \toc \Omega}\footnotemark \toc
+			\brackets{\Sigma \toc \Omega}\footnotemark \toc
+			\Sigma \toc \Omega
+		}                                                                                         \\
+		\supsctext{\bbrackets{\cassign{v}{e}}}{cont}_2\;\kappa_t\;\kappa_f\;\sigma    &
+		= \kappa_t\prths{\aug{\sigma}{v:\bbrackets{e}\sigma}}                                     \\
+		\supsctext{\bbrackets{\cskip}}{cont}_2\;\kappa_t\;\kappa_f\;\sigma            &
+		= \kappa_t\prths{\sigma}                                                                  \\
+		\supsctext{\bbrackets{\cseq{c_1}{c_2}}}{cont}_2\;\kappa_t\;\kappa_f\;\sigma   &
+		= \supsctext{\bbrackets{c_1}}{cont}_2
+		\prths{\supsctext{\bbrackets{c_2}}{cont}_2\;\kappa_t\;\kappa_f}\kappa_f\;\sigma           \\
+		\supsctext{\bbrackets{\cif{b}{c_0}{c_1}}}{cont}_2\;\kappa_t\;\kappa_f\;\sigma &
+		= \cif{\bbrackets{b}\sigma}
+		{\supsctext{\bbrackets{c_0}}{cont}_2\kappa_t\;\kappa_f\;\sigma}
+		{\supsctext{\bbrackets{c_1}}{cont}_2\kappa_t\;\kappa_f\;\sigma}                           \\
+		\supsctext{\bbrackets{\cwhile{b}{c}}}{cont}_2\;\kappa_t\;\kappa_f\;\sigma     &
+		= \prths{\subscmath{Y}{\Sigma \toc \Omega} \prths{F}} \prths{\sigma}
+		= \prths{\bigsqcup_{n=0}^\infty F^n\prths{\bot}}\prths{\sigma}                            \\
+		\textrm{where } F \prths{\kappa}\prths{\sigma^\prime}                         &
+		= \cif{\bbrackets{b}\sigma^\prime}
+		{\supsctext{\bbrackets{c}}{cont}_2\kappa\;\kappa_f\;\sigma^\prime}
+		{\kappa_t\prths{\sigma^\prime}}                                                           \\
+		\supsctext{\bbrackets{\cnew{v}{e}{c}}}{cont}_2\;\kappa_t\;\kappa_f\;\sigma    &
+		= \supsctext{\bbrackets{c}}{cont}_2
+		\kappa_t^\prime\;\kappa_f^\prime\;
+		\aug{\sigma}{v: \bbrackets{e}{\sigma}}                                                    \\
+		\textrm{where } \kappa_t^\prime                                               &
+		= \prths{\lambda \sigma^\prime.\; \kappa_t\prths{\aug{\sigma^\prime}{v:\sigma\prths{v}}}} \\
+		\textrm{and } \kappa_f^\prime                                                 &
+		= \prths{\lambda \sigma^\prime.\; \kappa_f\prths{\aug{\sigma^\prime}{v:\sigma\prths{v}}}} \\
+		\supsctext{\bbrackets{\cfail}}{cont}_2\;\kappa_t\;\kappa_f\;\sigma            &
+		= \kappa_f\prths{\sigma}                                                                  \\
+		\supsctext{\bbrackets{\cout{e}}}{cont}_2\;\kappa_t\;\kappa_f\;\sigma          &
+		= \iout\prths{\bbrackets{e}\sigma, \kappa_t\prths{\sigma}}                                \\
+		\supsctext{\bbrackets{\cin{v}}}{cont}_2\;\kappa_t\;\kappa_f\;\sigma           &
+		= \iin\prths{\lambda n \in \Z.\; \kappa_t\prths{\aug{\sigma}{v:n}}}                       \\
+	\end{align*}
+	\footnoteeqn[-1]{for normal computation}
+	\footnoteeqn{for aborted computation}
+	%
+	Note that $\kappa_f$ hardly changes.
+	%
+	The only change is to make it restore locally declared variables to their
+	original values.
+	%
+\end{enumcirc}
