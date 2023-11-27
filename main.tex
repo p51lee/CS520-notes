@@ -92,6 +92,8 @@
 \newcommand{\supscmath}[2]{#1^{\textrm{\tiny \ensuremath{{}_{#2}}}}}
 \newcommand{\intexpsem}[1]{\bbrackets{#1}_{\textrm{\tiny intexp}}}
 \newcommand{\assertsem}[1]{\bbrackets{#1}_{\textrm{\tiny assert}}}
+\newcommand{\normalsem}[1]{\bbrackets{#1}_{\textrm{\tiny n}}}
+\newcommand{\eagersem}[1]{\bbrackets{#1}_{\textrm{\tiny e}}}
 
 \newcommand{\Z}{\mathbb{Z}}
 \newcommand{\B}{\mathbb{B}}
@@ -128,6 +130,10 @@
 \newcommand{\botO}{\bot_\Omega}
 
 \newcommand{\defeq}{\stackrel{\text{def}}{=}}
+\newcommand{\subst}[3]{#1/_{#2 \rightarrow #3}}
+\newcommand{\RightarrowE}{\Rightarrow_{\textrm{E}}}
+\newcommand{\lrsupsubarrow}[2]{ \mathrel{\mathop{\rightleftarrows}^{\mathrm{#1}}_{\mathrm{#2}}} }
+
 
 \newcommand{\footnoteeqn}[2][1]{\addtocounter{footnote}{#1}\footnotetext{#2}}
 

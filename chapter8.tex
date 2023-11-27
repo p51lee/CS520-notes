@@ -1,3 +1,771 @@
 \chapter{The Lambda Calculus}
 
-\todo
+\section{Motivation}
+
+\begin{enumcirc}
+	%
+	\item
+	%
+	Most programming languages support a mechanism for declaring functions and
+	applying them to arguments.
+	%
+	In fact, in functional languages, such as Ocaml, Haskell, Clojure and Scala (to
+	some extent),
+	%
+	function declaration and application (not state access and update) is the main
+	device of computation.
+	%
+	\item
+	%
+	The lambda calculus is a simple formal language that lets us study principles
+	behind function declaration and application without being distracted by the
+	complexities of usual real-world programming languages.
+	%
+	If forms the basis of many functional languages.
+	%
+	Also, it can be used to define a notion of computability.
+	%
+	\item
+	%
+	One interesting construct of the lambda calculus is so-called lambda
+	abstraction.
+	%
+	\[
+		\lambda x. e
+	\]
+	%
+	which denotes a function with formal argument $x$ and body $e$.
+	%
+	Nowadays most mainstream languages (c++, Java, Python, etc.) support this
+	construct.
+	%
+	The lambda abstraction is particularly useful when we use higher-order
+	functions.
+	%
+	For instance, to express
+	%
+	\[
+		\int_{0}^{1} dx \int_{0}^{x} dy \prths{x+y}^2
+	\]
+	%
+	in a programming language with the ``\ul{integrate}'' primitive, we can write
+
+	\todo
+
+\end{enumcirc}
+
+\section{Syntax}
+
+\begin{center}
+	\begin{minipage}{0.5\textwidth}
+		\begin{grammar}
+			<exp> ::= <var>
+			| <exp> <exp> \footnotemark
+			| $\lambda$ <var> . <exp> \footnotemark
+		\end{grammar}
+	\end{minipage}
+\end{center}
+\footnoteeqn[-1]{called application}
+\footnoteeqn{called abstraction or lambda expression}
+
+\begin{enumcirc}
+	%
+	\item
+	%
+	examples
+	%
+	\todo
+	%
+	\item
+	%
+	The set of free variables (in an expression of the lambda calculus), the
+	substitution operator, and the $\alpha$-equivalence (or renaming equivalence)
+	for the lambda-calculus expressions are defined as you expect.
+	%
+	Once you get the idea that the lambda operator in $\lambda x. e$ binds the
+	variable $x$ in the expression $e$, just as the quantifier $\forall$ in
+	$\forall x. p$ binds the variable $x$ in an assertion $p$.
+	%
+	\begin{enumrm}
+		%
+		\item
+		\begin{align*}
+			\fv{v}            & = \braces{v}                  \\
+			\fv{e_1 \; e_2}   & = \fv{e_1} \cup \fv{e_2}      \\
+			\fv{\lambda v. e} & = \fv{e} \setminus \braces{v} \\
+		\end{align*}
+		%
+		\item
+		%
+		$\delta$ is a substitution, i.e., a map from $\chevrons{var}$ to $\chevrons{exp}$:
+		%
+		\begin{align*}
+			v / \delta                    & = \delta\prths{v}                                                             \\
+			\prths{e_1 \; e_2} / \delta   & = \prths{e_1 / \delta} \prths{e_2 / \delta}                                   \\
+			\prths{\lambda v. e} / \delta & = \lambda \subsctext{v}{new}. \prths{e / \aug{\delta}{v: \subsctext{v}{new}}} \\
+			where \subsctext{v}{new}      & \notin \bigcup_{w \in \fv{e} \setminus \braces{v}} \fv{\delta\prths{w}}
+		\end{align*}
+		%
+		\item
+		%
+		The renaming or change of bound variable means the operation of replacing an
+		occurrence of $\lambda v. e$ by
+		%
+		$\lambda \subsctext{v}{new}. \prths{\subst{e}{v}{\subsctext{v}{new}}}$,
+		%
+		\footnote{
+			This means the substitution that maps all variables to themselves except $v$, which
+			it maps to $\subsctext{v}{new}$.
+		}
+		%
+		Two expressions $e_1$ and $e_2$ are \ul{$\alpha$-equivalent} or
+		\ul{renaming-equivalent} if we can obtain $e_2$ from $e_1$ by applying this
+		renaming operation to some subexpressions of $e_1$ zero or multiple times.
+		%
+		We write $e_1 \equiv e_2$ to denote their $\alpha$-equivalence.
+		%
+		\begin{example}
+			\todo
+		\end{example}
+		%
+	\end{enumrm}
+\end{enumcirc}
+
+\section{Reduction}
+
+\begin{enumcirc}
+	%
+	\item
+	%
+	When we studied operational semantics, we used transition relation
+	$\rightarrow$ to model one-step computation.
+	%
+	We do something similar for the lambda calculus.
+	%
+	We define a binary relation
+	%
+	$\rightarrow \in \chevrons{exp} \times \chevrons{exp}$,
+	%
+	called \ul{contraction relation}, which models or formalizes single-step
+	computation.
+	%
+	Then, we will call the reflexive transitive closure of $\rightarrow$, i.e.,
+	$\rightarrow^*$, the \ul{reduction relation}.
+	%
+	\item
+	%
+	Here is the definition of the contraction relation using inference rules.
+	%
+	\begin{enumrm}
+		%
+		\item
+		%
+		$\beta$-reduction
+		%
+		\[
+			\inferrule
+			{\;}
+			{\prths{\lambda v. e}{e^\prime} \rightarrow \subst{e}{v}{e^\prime}}
+		\]
+		%
+		\item
+		%
+		Renaming
+		%
+		\[
+			\inferrule
+			{e_0 \rightarrow e_1 \\ e_1 \equiv e_1^\prime}
+			{e_0 \rightarrow e_1^\prime}
+		\]
+		%
+		\item
+		%
+		Contextual closure
+		%
+		\[
+			\inferrule
+			{e_0 \rightarrow e_1}
+			{e_0^\prime \rightarrow e_1^\prime}
+		\]
+		%
+		$e_1^\prime$ is obtained from $e_0^\prime$ by replacing one occurrence of
+		$e_0$ in $e_0^\prime$ by $e_1$.
+	\end{enumrm}
+	%
+	\item
+	%
+	The real change happens by the first rule, $\beta$-reduction.
+	%
+	The second rule means that the contraction relation is defined on
+	$\alpha$-equivalence classes.
+	%
+	The third rule says that any subexpression of a given $e$ can be contracted by
+	the $\beta$-reduction rule.
+	%
+	Here are a few examples that may help you to see what goes on here.
+	%
+	\todo
+	%
+	\item
+	%
+	Because of the third rule, the contraction relation is not deterministic.
+	%
+	That is, $e_0 \rightarrow e_1$ and $e_0 \rightarrow e_2$ do not imply that $e_1
+		\equiv e_2$.
+	%
+	For a counterexample, look at the example above.
+	%
+	However, this nondeterminism comes from any nondeterministic constructs of the
+	lambda calculus (which do not exist).
+	%
+	The following theorem shows one consequence of this, and expresses that the
+	contraction relation is essentially deterministic.
+	%
+	\begin{property}[Church-Rosser Theorem]
+		%
+		\label{church-rosser}
+		\ \\
+		%
+		If $e \rightarrow^* e_0$\footnote{ reflexive transitive closure of
+			$\rightarrow$ } and $e \rightarrow^* e_1$, then there exists $e_2$ s.t. $e_0
+			\rightarrow^* e_2$ and $e_1 \rightarrow^* e_2$.
+		%
+	\end{property}
+	%
+	\item
+	%
+	An expression $e$ \ul{is a $\beta$-normal form} if it cannot be contracted.
+	%
+	Intuitively, such an expression denotes the final result of some computation,
+	and the reduction relation $\rightarrow^*$ performs computation by transforming
+	a given expression to normal form.
+	%
+	\cref{church-rosser} implies that every expression can be reduced to at most
+	one normal-form expression modulo $\alpha$-equivalence.
+	%
+	\begin{property}
+		%
+		\ \\
+		If $e_0 \rightarrow^* e_1$, $e_0 \rightarrow e_2$ and $e_1$ and $e_2$ are
+		$\beta$-normal forms, then $e_1 \equiv e_2$. (i.e. $e_1$ and $e_2$ are
+		$\alpha$-equivalent)
+		%
+	\end{property}
+	%
+	\begin{proof}
+		%
+		By \cref{church-rosser}, $\exists e_3$ s.t.
+		%
+		$e_1 \rightarrow^* e_3$ and $e_2 \rightarrow^* e_3$.
+		%
+		Since $e_1$ and $e_2$ are $\beta$-normal forms,
+		%
+		$e_1 \equiv e_3$ and $e_2 \equiv e_3$.
+		%
+		$\therefore e_1 \equiv e_2$.
+		%
+	\end{proof}
+	%
+	\item
+	%
+	One natural question is whether we can find a good strategy to use the
+	nondeterminism in the third ``Contextual closure'' rule, so that if an
+	expression $e$ can be reduced to a normal form, this strategy indeed transforms
+	$e$ to such a normal-form expression.
+
+	To see this issue, consider the following two reduction sequences:
+	%
+	\begin{align*}
+		\prths{\lambda u. \lambda v. v}
+		\prths{
+			\prths{\lambda x. x \; x}
+			\prths{\lambda x. x \; x}
+		}
+		 & \rightarrow \lambda v. v \\
+		\prths{\lambda u. \lambda v. v}
+		\prths{
+			\prths{\lambda x. x \; x}
+			\prths{\lambda x. x \; x}
+		}
+		 & \rightarrow
+		\prths{\lambda u. \lambda v. v}
+		\prths{
+			\prths{\lambda x. x \; x}
+			\prths{\lambda x. x \; x}
+		}                           \\
+		 & \rightarrow \cdots
+	\end{align*}
+	%
+	Only the first gives an expression in the normal form.
+	%
+	\item
+	%
+	\ul{The normal-order reduction} is a particular way of using the ``Contextual closue'' rule.
+	%
+	It picks a redex\footnote{reducible expression} ($\beta$-redex) in an
+	expression $e$ that is not included in any other redex.
+	%
+	Also, if there are multiple such \ul{outermost} redexes, it picks the
+	\ul{leftmost} one.
+	%
+	In our example, the normal-order reduction doesn't pick the redex
+	%
+	$\prths{\lambda x. x \; x} \prths{\lambda x. x \; x}$
+	%
+	because it is included in the redex
+	%
+	$\prths{\lambda u. \lambda v. v} \prths{\prths{\lambda x. x \; x} \prths{\lambda x. x \; x}}$.
+	%
+	The normal-order reduction is also called \ul{outermost} \ul{leftmost}
+	reduction.
+	%
+	\begin{property}
+		%
+		If $e \rightarrow^* e^\prime$ for some normal-form $e^\prime$,
+		%
+		then $e \rightarrow^*_\text{normal} e^\prime$
+		%
+		where $\rightarrow^*_\text{normal}$ means the contraction relation of the
+		normal-order reduction.
+		%
+	\end{property}
+	%
+\end{enumcirc}
+
+\section{Normal-order evaluation and eager evaluation}
+
+\begin{enumcirc}
+	%
+	\item
+	%
+	In functional languages, we use restricted versions of the reduction relation
+	to specify how function calls should be handled.
+	%
+	We will look at two well-known restrictions used in Haskell and Ocaml, and call
+	them normal-order evaluation and eager evaluation.
+	%
+	Note that we use the world ``evaluation'' instead of ``reduction'' or
+	``contraction''.
+	%
+	\item
+	%
+	Both normal-order evaluation and eager evaluations are defined for closed
+	expressions only, i.e., expressions that do not have any free variables.
+	%
+	Also, they are formalized as big-step semantics where the evaluation relation
+	$\Rightarrow$ transforms an expression to a final result in one go, instead of
+	in multiple steps in the reduction relation.
+	%
+	Finally, these evaluations do not contract any subexpressions inside lambda.
+	%
+	Thus, their results might not be normal forms.
+	%
+	They will instead be a \ul{canonical form}.
+	%
+	\item
+	%
+	Normal-order evaluation $\Rightarrow$:
+	%
+	\[
+		e\footnotemark \Rightarrow z\footnotemark
+	\]
+	\footnoteeqn[-1]{closed expression}
+	\footnoteeqn{expression in the canonical form (i.e., lambda expression)}
+	%
+	\ul{A canonical form $z$} is a lambda expression.
+
+	Canonical Forms
+	%
+	\[
+		\inferrule{\;}{\lambda v. e \Rightarrow \lambda v. e}
+	\]
+
+	Application ($\beta$-evaluation)
+	%
+	\[
+		\inferrule
+		{e \Rightarrow \lambda v . e'' \\ \prths{\subst{e''}{v}{e'}} \Rightarrow z}
+		{e \; e' \Rightarrow z}
+	\]
+	%
+	\begin{property}
+		%
+		For any closed expression $e$ and canonical form $z$,
+		%
+		$e \rightarrow^* z$ iff $e \Rightarrow z$.
+		%
+	\end{property}
+	%
+	\begin{exercise}
+		\todo
+	\end{exercise}
+	%
+	\item
+	%
+	Intuitively, the normal-order evaluation works by postponing the evaluation of
+	the arguments of a function.
+	%
+	The arguments get evaluated when they are needed.
+	%
+	However, this evaluation strategy may be inefficient because it may repeat the
+	evaluation of one argument.
+	%
+	For instance, look at the following example.
+	%
+	\[
+		\prths{\lambda x. x \; x}
+		\prths{
+			\prths{\lambda y. y}
+			\prths{\lambda z. z}
+		}
+	\]
+	%
+	In the normal-order evaluation, the redex
+	%
+	$\prths{\lambda y. y} \prths{\lambda z. z}$
+	%
+	gets contracted twice; because of the two occurrences of $x$ in the body of
+	%
+	$\lambda x. x \; x$.
+	%
+	\item
+	%
+	The eager evaluation takes a different approach.
+	%
+	It evaluates the arguments of a function before applying the function.
+	%
+	Most programming languages implement this eager evaluation strategy.
+	%
+	\item
+	%
+	Eager evaluation (formalized by) $\RightarrowE$:
+	%
+	\[
+		e\footnotemark \RightarrowE z\footnotemark
+	\]
+	\footnoteeqn[-1]{closed expression}
+	\footnoteeqn{canonical form}
+
+	Canonical Forms
+	%
+	\[
+		\inferrule{\;}{\lambda v. e \RightarrowE \lambda v. e}
+	\]
+
+	Application ($\beta_\textrm{E}$-evaluation)
+	%
+	\[
+		\inferrule
+		{
+			e \RightarrowE \lambda v . e'' \\
+			e' \RightarrowE z' \\
+			\prths{\subst{e''}{v}{z'}} \RightarrowE z}
+		{e \; e' \Rightarrow z}
+	\]
+	%
+	\begin{exercise}
+		\todo
+	\end{exercise}
+	%
+\end{enumcirc}
+
+\section{Deotational semantics}
+
+\begin{enumcirc}
+	%
+	\item
+	%
+	Interpreting the lambda calculus denotationally is not easy.
+	%
+	It was one of the longstanding open problems in the 1960's, until Scott solved
+	it using the techniques from the domain theory (which Scott himself developed
+	partly for this purpose).
+	%
+	\item
+	%
+	To understand why it was an open problem, let's try to interpret expressions in
+	the lambda calculus (denotationally) using sets and functions.
+	%
+	This trial will fail as we explain shortly and will show the challenge of
+	handling the fact that in the lambda calculus, functions can cat on themselves.
+
+	The first thing that we should do (in this trial) is to find an appropriate
+	space $S$ (which is this case is a set) for the meanings of the expressions.
+	%
+	Let's suppose that we somehow managed to find such $S$.
+	%
+	Then, $S$ should include all functions on $S$ that may be denoted by
+	expressions in the lambda calculus.
+	%
+	Let's make a slightly stronger but nicer assumption that
+	%
+	\[
+		\brackets{S \rightarrow S}\footnotemark \subseteq S
+	\]
+	\footnoteeqn[0]{set of all functions on $S$}
+	%
+	we will now show that $S$ is the singleton set.
+	%
+	This is because the assumption implies that every function $f$ on $S$ has a
+	fixed point, which can happen only if $S$ is a singleton set.
+	%
+	What fixed point does a function $f \in \brackets{S \rightarrow S}$ have?
+
+	Here is an answer for the question.
+	%
+	Let $p$ a function on $S$ s.t. $p\prths{x} = f\prths{x\prths{x}}$ for all
+	%
+	$x \in \brackets{S \rightarrow S} \subseteq S$.
+	%
+	Such $p$ exists.
+	%
+	Then $p\prths{p} = f\prths{p\prths{p}}$.
+	%
+	So, $p\prths{p}$ is a fixed point of $f$.
+
+	We have just shown that $\brackets{S \rightarrow S} \notin S$ for any set $S$
+	that contains more than one element.
+	%
+	\item
+	%
+	What should we do?
+	%
+	We need to use the domain theory and the categorical tools, in particular
+	general categorical fixed-point theorem and the category
+	$\textrm{DOM}^\textrm{EP}$, which consists of domains and a particular kind of
+	strict conditions functions called embeddings.
+	%
+	If you are curious about these, look at the notes on
+	%
+	``5. Famous Example of the Fixed point Theorem'' (6 Nov 2018).
+	%
+	Using these tools, we can find domains $D_1, D_2, D_3$ and $V_2, V_3$ s.t.
+	%
+	\begin{enumrm}
+		%
+		\item
+		%
+		\[
+			D_1\footnotemark \simeq\footnotemark \brackets{D_1 \toc\footnotemark D_1}
+		\]
+		\footnoteeqn[-2]{also denoted by $D_\infty$ in other textbooks}
+		\footnoteeqn{isomorphism between domains}
+		\footnoteeqn{
+			\begin{minipage}{0.9\textwidth}
+				continuous functions. We often omit $c$ but here we wrote it explicitly to
+				emphasize the fact that we are considering continuous functions only here.
+			\end{minipage}
+		}
+		%
+		\item
+		%
+		\begin{align*}
+			D_2 & \simeq \brackets{D_2 \toc D_2} \times \brackets{D_2 \toc D_2} \\
+			D_3 & \defeq \prths{V_3}_\bot                                       \\
+		\end{align*}
+		%
+		\item
+		%
+		\begin{align*}
+			V_2 & \defeq \brackets{D_2 \toc D_2}              \\
+			V_3 & \simeq \brackets{V_3 \toc \prths{V_3}_\bot} \\
+		\end{align*}
+		%
+	\end{enumrm}
+	%
+	\item
+	%
+	Note that $D_1$, $D_2$ and $V_3$ are solutions of slightly different recursive
+	domain equations.
+	%
+	Why do we consider three such equations, instead of one?
+	%
+	It is because the contraction relation, the normal-order evaluation and the
+	eager evaluation provide three different meanings to the expressions in the
+	lambda calculus,
+	%
+	and these equations capture these differences.
+	%
+	$D_1$ is for the contraction relation, $D_2$ and $V_2$ are for the normal-order
+	evaluation, and $D_3$ and $V_3$ are for the eager evaluation.
+	%
+	\item
+	%
+	As before, understanding these domains is the key to understand the
+	denotational semantics of the lambda calculus under three different notions of
+	computations:
+	%
+	\begin{enumrm}
+		%
+		\item
+		%
+		the contraction relation
+		%
+		\item
+		%
+		the normal-order evaluation
+		%
+		\item
+		%
+		the eager evaluation
+		%
+	\end{enumrm}
+	%
+	The equations for $\prths{D_2, V_2} and \prths{D_3, V_3}$ indicate that under
+	(ii) and (iii), we need to differentiate expressions that don't terminate and
+	those that do and become lambda expressions.
+	%
+	$D_2$ and $D_3$ are domains for all expressions, and $V_2$ and $V_3$ are domains
+	for the latter kind of expressions.
+	%
+	Sometimes $V_2$ and $V_3$ are called \ul{domains for values}, and $D_2$ and
+	$D_3$ are called \ul{domains for computations}.
+	%
+	Note that we don't make this kind of distinction for $D_1$.
+	%
+	For instance, in $D_2$ and $D_3$, $\bot$ is different from the constant
+	function that always return $\bot$. (i.e. $\lambda x. \bot$)
+	%
+	On the other hand, in $D_1$, they are regarded the same.
+	%
+	(In $D_1$, $\lambda x . \bot$ is the least element up to the isomorphism $D_1
+		\simeq \brackets{D_1 \toc D_1}$.)
+
+	Why is $D_1$'s way of defining $\bot$ different from $D_2$ and $D_3$'s?
+	%
+	Because the normal-order evaluation and the eager evaluation are do not reduce
+	subexpressions under the lambda abstraction ($\lambda x. e$), whereas the
+	contraction relation do reduce such subexpressions.
+	%
+	\item
+	%
+	Now let's try to understand the difference between $\prths{D_2, V_2}$ and
+	$\prths{D_3, V_3}$.
+	%
+	Rewriting isomorphisms and definitions slightly can help us to see this
+	difference more easily.
+	%
+	\begin{align*}
+		D_2 & \defeq \prths{V_2}_\bot \qquad V_2 \simeq \prths{\brackets{D_2 \toc D_2}}_\bot \\
+		D_3 & \defeq \prths{V_3}_\bot \qquad V_3 \simeq \brackets{V_3 \toc D_3}              \\
+	\end{align*}
+	%
+	The key difference lies in the fact that $V_2$ has a function space
+	%
+	$\brackets{\underline{D_2} \toc D_2}$,
+	%
+	whereas $V_3$ has a function space
+	%
+	$\brackets{\underline{V_3} \toc D_3}$.
+	%
+	The argument domain for the normal-order evaluation is that for computations,
+	while the argument domain for the eager evaluation is that for values.
+	%
+	This difference comes from the fact that in the eager evaluation, we pass only
+	canonical forms (which are lambda expressions) to functions as arguments, while
+	in the normal-order evaluation, we pass any expressions as function arguments.
+	%
+	So, when we use the normal-order evaluation, variables may be bound to
+	expressions that may denote any computations.
+	%
+	But if we use the eager evaluation, variables should be bound to lambda
+	expressions or more generally canonical forms that denote values.
+	%
+	\item
+	%
+	Here is the denotational semantics for the contraction relation.
+	%
+	\[
+		D_1 \lrsupsubarrow{\phi}{\psi} \brackets{D_1 \toc D_1}
+	\]
+	%
+	\[
+		\begin{array}{c}
+			\bbrackets{-} \in
+			\brackets{ \chevrons{exp} \rightarrow \brackets{ D_1^{\chevrons{var}}\footnotemark \toc D_1 } }
+			\qquad \eta \in D_1^{\chevrons{var}} \dots \textrm{called \ul{environment}}                 \\[1em]
+			\bbrackets{v}\eta = \eta\prths{v} \qquad
+			\bbrackets{e_1 \; e_2}\eta = \phi\prths{\bbrackets{e_1}\eta} \prths{\bbrackets{e_2}\eta}    \\
+			\bbrackets{\lambda x. e}\eta = \psi\prths{\lambda a \in D_1 . \bbrackets{e}\aug{\eta}{x:a}} \\
+		\end{array}
+	\]
+	\footnoteeqn[0]{$D_1^{\chevrons{var}}=\brackets{\chevrons{var} \rightarrow D_1}$ ordered pointwise}
+	%
+	\begin{property}[Textbook 10.8]
+		%
+		\;\\
+		%
+		Well-defined. That is,
+		%
+		$\lambda a \in D_1 . \bbrackets{e}\aug{\eta}{x}{a}$
+		%
+		is continuous.
+		%
+	\end{property}
+	%
+	\begin{property}[Textbook 10.12 and 10.13]
+		%
+		\[
+			\textrm{If } e_0 \rightarrow e_1, \textrm{ then }
+			\bbrackets{e_0}\eta = \bbrackets{e_1}\eta \textrm{ for all } \eta \in D_1^{\chevrons{var}}.
+		\]
+	\end{property}
+	%
+	The contraction relation preserves the semantics.
+	%
+	Note that this implies that the reduction relation $\rightarrow^*$ also
+	preserves the semantics.
+	%
+	\item
+	%
+	Here are the denotational semantics for the normal-order evaluation and that
+	for the eager evaluation.
+
+	\ul{normal-order evaluation:}
+	%
+	\[
+		\begin{array}{c}
+			\displaystyle
+			D_2 = \prths{V_2}_\bot \qquad
+			V_2 \lrsupsubarrow{\phi}{\psi} \brackets{D_2 \toc D_2} \times \brackets{V_2 \toc V_2}                                                                      \\[1em]
+			\normalsem{-} \in \brackets{\chevrons{exp} \rightarrow \brackets{ D_2^{\chevrons{var}} \toc D_2 }}                                                         \\[1em]
+			\normalsem{v}\eta = \eta\prths{v}                                                                                                                          \\
+			\normalsem{e_0 \; e_1}\eta = \begin{cases}
+				                             \bot                                                       & \quad \textrm{if} \quad \normalsem{e_0}\eta = \bot \\
+				                             \phi\prths{\normalsem{e_0}\eta}\prths{\normalsem{e_1}\eta} & \quad \textrm{otherwise}                           \\
+			                             \end{cases} \\[2em]
+			\normalsem{\lambda x. e}\eta = \psi\prths{\lambda a \in D_2 . \normalsem{e}\aug{\eta}{x:a}}                                                                \\
+		\end{array}
+	\]
+
+	\ul{eager evaluation:}
+	%
+	\[
+		\begin{array}{c}
+			\displaystyle
+			D_3 = \prths{V_3}_\bot \qquad
+			V_3 \lrsupsubarrow{\phi}{\psi} \brackets{V_3 \toc D_3}                                                                                \\[1em]
+			\eagersem{-} \in \brackets{\chevrons{exp} \rightarrow \brackets{ V_3^{\chevrons{var}} \toc D_3 }}                                     \\[1em]
+			\eagersem{v}\eta = \eta\prths{v}                                                                                                      \\
+			\eagersem{e_0 \; e_1}\eta = \begin{cases}
+				                            \bot                                                     &
+				                            \quad \textrm{if} \quad \eagersem{e_0}\eta = \bot \textrm{ or } \eagersem{e_1}\eta = \bot \\
+				                            \phi\prths{\eagersem{e_0}\eta}\prths{\eagersem{e_1}\eta} &
+				                            \quad \textrm{otherwise}                                                                  \\
+			                            \end{cases} \\[2em]
+			\eagersem{\lambda x. e}\eta = \psi\prths{\lambda a \in V_3 . \eagersem{e}\aug{\eta}{x:a}}                                             \\
+		\end{array}
+	\]
+
+	Both semantics are well-defined.
+	%
+	They validate the normal-order evaluation relation and the eager evaluation
+	relation.
+	%
+	That is,
+	%
+	\begin{align*}
+		\prths{e \Rightarrow e'} \quad  & \Rightarrow\quad \normalsem{e}\eta = \normalsem{e'}\eta \textrm{ for all } \eta \in D_2^{\chevrons{var}} \\
+		\prths{e \RightarrowE e'} \quad & \Rightarrow\quad \eagersem{e}\eta = \eagersem{e'}\eta \textrm{ for all } \eta \in V_3^{\chevrons{var}}   \\
+	\end{align*}
+\end{enumcirc}
