@@ -1,3 +1,130 @@
 \chapter{Program Specifications and Their Proofs}
 
-\todo
+\section{Motivation}
+
+\begin{enumcirc}
+	%
+	\item
+	%
+	Are there any methods that let us specify desired properties or intended
+	behaviors of a program and prove that the specified properties indeed hold?
+	%
+	For instance, consider the program:
+	%
+	\[
+		\subsctext{c}{div3} =
+		\prths{
+			\begin{array}{l}
+				a := 0;                                        \\
+				b := x;                                        \\
+				\textrm{while } \prths{b \geq 3} \textrm{ do } \\
+				\qquad b := b - 3;                             \\
+				\qquad a := a + 1                              \\
+			\end{array}
+		}
+	\]
+	%
+	We want to express formally that the program divides $x$ by $3$ and stores the
+	quotient in $a$ and the remainder in $b$.
+	%
+	We also want to prove this formal specification.
+	%
+	\item
+	%
+	We will study Hoare logic and its variant for total correctness.
+	%
+	They provide the kind of methods that we are looking for.
+	%
+	\item
+	%
+	Hoare logic and its total-correctness variant are the basis of modern automatic
+	software verifiers, such as Facebook's infer.
+	%
+	\item
+	%
+	Another reason for studying Hoare logic is that it shows why we need or where
+	we use denotational semantics that we studied.
+	%
+\end{enumcirc}
+
+\section{Syntax and semantics of specifications}
+
+\begin{enumcirc}
+	%
+	\item
+	%
+	Specifications are a new type of phrases that formally express properties of
+	programs.
+	%
+	\item
+	%
+	Syntax in terms of abstract grammar:
+	%
+	\begin{center}
+		\begin{minipage}{0.5\textwidth}
+			\grammarindent5em
+			\begin{grammar}
+				<spec> ::= \{<assert>\} <comm> \{<assert>\}
+				\alt [<assert>] <comm> [<assert>]
+			\end{grammar}
+		\end{minipage}
+	\end{center}
+	%
+	\begin{exampletab}
+		%
+		\todo
+		%
+	\end{exampletab}
+	%
+	\item
+	%
+	Intuitive reading:
+	%
+	\begin{enumrm}
+		%
+		\item
+		%
+		$\braces{p} c \braces{q}$ holds iff when $c$ is run in a state satisfying $p$,
+		\ul{and it terminates normally}, \footnote{condition} then the final state satisfies $q$.
+		%
+		\item
+		%
+		$\brackets{p} c \brackets{q}$ holds iff when $c$ is run in a state satisfying $p$,
+		then \ul{it terminates normally}, \footnote{conclusion} and the final state satisfies $q$.
+		%
+	\end{enumrm}
+	%
+	Note that $\brackets{p} c \brackets{q}$ expresses a stronger property than
+	$\braces{p} c \braces{q}$.
+	%
+	The former is called \ul{total correctness specification}, \footnote{also total
+		correctness triple} and the latter \ul{partial correctness specification}.
+	\footnote{also partial correctness triple, Hoare triple or triple}
+
+	$p$ \dots precondition or precedent.
+
+	$q$ \dots postcondition or consequent.
+
+	\begin{exercise}
+		%
+		Among all the partial correctness and total correctness specification from
+		above, pick those that hold.
+		%
+	\end{exercise}
+	%
+	\item
+	%
+	Formal semantics:
+	%
+	\begin{align*}
+		\bbrackets{-}                           & \in \brackets{\gram{spec} \to \B} \\
+		\bbrackets{\braces{p} c \braces{q}}     & = \ttt \quad \textrm{ iff } \quad
+		\bbrackets{p} \sigma = \ttt \wedge \bbrackets{c} \sigma \neq \bot \implies
+		\bbrackets{q} \prths{\bbrackets{c} \sigma} = \ttt                           \\
+		\bbrackets{\brackets{p} c \brackets{q}} & = \ttt \quad \textrm{ iff } \quad
+		\bbrackets{p} \sigma = \ttt \implies \bbrackets{c} \sigma \neq \bot \wedge
+		\bbrackets{q} \prths{\bbrackets{c} \sigma} = \ttt
+	\end{align*}
+
+\end{enumcirc}
+
