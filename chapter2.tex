@@ -1,3 +1,929 @@
 \chapter{The Simple Imperative Language}
 
-\todo
+\section{Motivation or goal}
+
+\begin{enumcirc}
+	%
+	\item
+	%
+	Most real-worlds PLs support computation by state update and that by function
+	application.
+	%
+	The former is often referred to as imperative computation, and the latter as
+	functional or applicative computation
+	%
+	Our goal is to study core PL concepts and ideas for imperative computation.
+	%
+	\item
+	%
+	Actually, it is more appropriate to say that our aim is a formal and
+	mathematical analysis of the core PL concepts for imperative computation.
+	%
+	We will study or learn mathematical tools for this.
+	%
+	Also, we will show how to express and analyze big design decisions of such an
+	imperative PLs.
+	%
+	\item
+	%
+	We will look at (i) some basic concepts and results of domain theory, (ii)
+	variable declaration and binding, (iii) syntactic sugar error handling and (iv)
+	the notions of soundness and full abstraction.%
+	%
+	(Well, I just listed all the key items in the chapter 2 of the book.)
+	%
+	\item
+	%
+	A good way to learn the material of this chapter is to ask yourself:
+	%
+	What should you do in order to design an imperative programming language and
+	build a foundation of the designed language?
+	%
+	Think about this a little, and compare your answer with what I'll explain.
+	%
+\end{enumcirc}
+
+\section{Syntax}
+
+\begin{enumcirc}
+	%
+	\item
+	%
+	Variables, and read and update of them \dots key concepts or operations for
+	imperative computation.
+	%
+	\item
+	%
+	Syntax that supports these concepts and operations:
+	%
+	\begin{center}
+		\begin{minipage}{0.9\textwidth}
+			\begin{grammar}
+				<intexp> ::= 0 | 1 | 2 | \dots | <var> | ... \footnotemark
+
+				<boolexp> ::= true | false | ... \footnotemark
+
+				<comm> ::= <var> := <intexp> \footnotemark | skip | <comm> ; <comm> \footnotemark
+				\alt if <boolexp> then <comm> else <comm>
+				\alt while <boolexp> do <comm>
+			\end{grammar}
+		\end{minipage}
+	\end{center}
+	\footnoteeqn[-3]{same as before}
+	\footnoteeqn{
+		\begin{minipage}{0.9\textwidth}
+			%
+			almost the same as that of $\chevrons{\textit{assert}}$.
+			%
+			The exception is that $\chevrons{\textit{boolexp}}$ doesn't include
+			quantifiers. (Why?)
+			%
+		\end{minipage}
+	}
+	\footnoteeqn{update of a variable}
+	\footnoteeqn{order matters}
+
+	As in the case of predicate logic, you can understand $\gram{comm}$ as the set
+	of all finite derivation trees, or as a multi-sorted initial algebra for the
+	signature determined by the grammar.
+	%
+	\item
+	%
+	It is a language for expressing a sequence of variable reads and variable
+	updates.
+	%
+\end{enumcirc}
+
+\section{Baby domain theory}
+
+\begin{enumcirc}
+	%
+	\item
+	%
+	Giving a denotational semantics to our simple imperative language is not as
+	straightforward as doing so with predicate logic, because of loop.
+	%
+	\item
+	%
+	$\bbrackets{-}$ : $\gram{comm} \to \dots$\;\footnote{don't worry about this target set now.}
+
+	We want the following equation for loop unrolling to hold:
+	%
+	\begin{align*}
+		\bbrackets{\cwhile{b}{c}} & = \bbrackets{\cif{b}{c ; \cwhile{b}{c}}{\cskip}}             \\
+		                          & = \dots \bbrackets{\cwhile{b}{c}} \dots                      \\
+		                          & = F \prths{\bbrackets{\cwhile{b}{c}}} \textrm{ for some } F.
+	\end{align*}
+	%
+	But a function $F$ on a set may or may not have such a fixed point.
+	%
+	\item
+	%
+	Then, why should $F$ in the above have a fixed point?
+	%
+	Because it is something that can be implemented by a program.
+	%
+	\[
+		F \; ``=" \footnotemark \bbrackets{\cif{b}{c ; \Box}{\cskip}}.
+	\]
+	\footnoteeqn[0]{informally}
+	%
+	One objective of domain theory is to formalize good properties enjoyed by such
+	program implementable functions without going into the low-level details of
+	computability theory.
+	%
+	\item
+	%
+	High-level meta heuristic behind domain theory:
+	%
+	\begin{enumrm}
+		%
+		\item
+		%
+		Consider a set together with some structure.
+		%
+		\item
+		%
+		Use functions between such sets that respect the structures.
+		%
+		\item
+		%
+		Why on (i) and (ii)?
+		%
+		Because if done well, functions in (ii) will always have fixed points.
+		%
+	\end{enumrm}
+	%
+	\item
+	%
+	Key definitions:
+	%
+	\begin{definition}[partial order]
+		%
+		A binary relation $\sqsubseteq$ on a set $S$ is a \ul{partial order} if
+		%
+		\begin{enumrm}
+			%
+			\item
+			%
+			$x \sqsubseteq x$ for all $x \in S$ (reflexivity);
+			%
+			\item
+			%
+			for all $x, y, z \in S$, if $x \sqsubseteq y$ and $y \sqsubseteq z$,
+			%
+			then $x \sqsubseteq z$ (transitivity); and
+			%
+			\item
+			%
+			for all $x, y \in S$, if $x \sqsubseteq y$ and $y \sqsubseteq x$, then $x = y$
+			(anti-symmetry).
+			%
+		\end{enumrm}
+		%
+		A set $S$ with a partial order $\sqsubseteq$ is called a
+		%
+		\ul{partially ordered set} or \ul{poset}.
+		%
+	\end{definition}
+	%
+	\begin{definition}
+		%
+		A \ul{chain} in a poset $\prths{S, \sqsubseteq}$ is a (countably) infinite
+		sequence
+		%
+		\[
+			x_0, x_1, x_2, \dots , x_n, \dots
+		\]
+		%
+		of elements in $S$ s.t. $x_n \sqsubseteq x_{n+1}$ for all $n \geq 0$.
+	\end{definition}
+	%
+	\begin{definition}
+		%
+		A \ul{domain} is a pre-domain $\prths{S, \sqsubseteq}$ that has
+		%
+		\ul{the least element}, often denoted $\bot$.
+		%
+		(meaning: for all $x \in S$, $\bot \sqsubseteq x$)
+		%
+	\end{definition}
+	%
+	\begin{definition}
+		%
+		Let $\prths{S_1, \sqsubseteq_1}$ and $\prths{S_2, \sqsubseteq_2}$ be
+		pre-domains.
+		%
+		A function $f : S_1 \to S_2$ is \ul{continuous} if for every chain
+		%
+		$\braces{x_n}_{n \geq 0}$ in $S_1$,
+		%
+		$f \prths{\bigsqcup_{n \geq 0} x_n}$ is the least upper bound of
+		%
+		$\braces{f \prths{x_n}}_{n \geq 0}$ in $S_2$.
+		%
+	\end{definition}
+	%
+	\begin{definition}
+		%
+		A function $f : S_1 \to S_2$ is \ul{monotone} if for all $x, y \in S_1$,
+		%
+		\[
+			x \sqsubseteq_1 y \implies f \prths{x} \sqsubseteq_2 f \prths{y}.
+		\]
+		%
+		When $S_1$ and $S_2$ are domains with least elements $\bot_1$ and $\bot_2$, we
+		say that a function
+		%
+		$f : S_1 \to S_2$ is \ul{strict} if
+		%
+		$f \prths{\bot_1} = \bot_2$.
+		%
+	\end{definition}
+	%
+	\begin{exercise} \label{ex:cont-mon}
+		%
+		Show that if $f$ is continuous, it is monotone.
+		%
+	\end{exercise}
+	\item
+	%
+	What's going on here?
+	%
+	What are the intuitions behind these definitions?
+	%
+	\begin{enumrm}
+		%
+		\item
+		%
+		$x \subseteq y$ \dots intuitively means that $y$ has more information than $x$ or
+		$x$ and $y$ have the same amount of information.
+		%
+		\begin{exampletab}
+			%
+			\begin{enumalpha}
+				%
+				\item
+				%
+				\todo
+				%
+				\item
+				%
+				\todo
+				%
+				\item
+				%
+				\todo
+				%
+				\item
+				%
+				\todo
+				%
+			\end{enumalpha}
+		\end{exampletab}
+		%
+		\item
+		%
+		The monotonicity means the preservation of the approximation
+		relation.\footnote{ editor: if $a$ is an approximation of $b$, then $f(a)$ is
+			an approximation of $f(b)$ }
+		%
+		One intuition behind continuity of $f$ is that in order to produce finite
+		amount of information in its output, $f$ consumes only finite amount
+		information in its input.
+		%
+		\begin{exampletab}
+			%
+			\begin{enumalpha}
+				%
+				\item
+				%
+				\todo
+				%
+				\begin{exercisetab}
+					%
+					\todo
+					%
+				\end{exercisetab}
+				%
+				\item
+				%
+				\todo
+				%
+				\begin{exercisetab}
+					%
+					\todo
+					%
+				\end{exercisetab}
+				%
+			\end{enumalpha}
+			%
+		\end{exampletab}
+		%
+		\item
+		%
+		John Reynolds' phrase in page 108: \\
+		%
+		\emph{
+			``\dots Instead, it is based on the
+			physical \footnote{ Domain theory attempts to capture this aspect of computation
+			} limitations of communication: one cannot predict the future of input, nor
+			receive an infinite amount of information in a finite amount of time, nor
+			produce output except at finite times \dots''
+		}
+		%
+	\end{enumrm}
+	%
+	\item
+	%
+	One important reason of doing domain theory is to have the following ``least
+	fixed-point theorem'':
+	%
+	\begin{property}[Least Fixed-Point Theorem]
+		%
+		If $D$ is a domain and $f$ is a continuous function from $D$ to $D$,
+		%
+		\[
+			x = \bigsqcup_{n = 0}^{\infty} f^n \prths{\bot \footnotemark}
+		\]
+		\footnoteeqn[0]{least element of $D$}
+		%
+		is the least fixed-point of $f$.
+		%
+		(That is, $f \prths{x} = x$ and for all $y \in D$ s.t. $f \prths{y} = y$, $x \sqsubseteq y$.)
+		%
+	\end{property}
+	%
+	\begin{proof}
+		%
+		By \cref{ex:cont-mon}, $f$ is monotone.
+		%
+		Using induction and $\bot$'s being the least element, we can show that
+		%
+		$\braces{f^n \prths{\bot}}_{n \geq 0}$ is a chain in $D$.
+		%
+		Since $D$ is a domain, the least upper bound
+		%
+		$\bigsqcup_{n = 0}^{\infty} f^n \prths{\bot}$ exists.
+		%
+		Furthermore, by the continuity of $f$,
+		%
+		\[
+			f \prths{x} =
+			f \prths{\bigsqcup_{n = 0}^{\infty} f^n \prths{\bot}} =
+			\bigsqcup_{n = 0}^{\infty} f^{n + 1} \prths{\bot} =
+			\bigsqcup_{n = 0}^{\infty} f^n \prths{\bot} =
+			x.
+		\]
+		%
+		$\therefore x$ is a fixed point of $f$.
+
+		To show that x is a least such, consider a fixed point $y$ of $f$.
+		%
+		Then, by induction, we can show that $y$ is an upper bound of the chain
+		%
+		$\braces{f^n \prths{\bot}}_{n \geq 0}$.
+		%
+		$\therefore x \sqsubseteq y$.
+		%
+	\end{proof}
+	%
+	\item
+	%
+	When $P, P'$ are predomains, we write $\brackets{P \toc P'}$ for the set of
+	continuous functions.
+	%
+	When $\brackets{P \toc P'}$\footnote{
+		\begin{minipage}{0.9\textwidth}
+			%
+			Although we rush here, this function space construction is very important.
+			%
+			It lets domain theory be applicable to functional languages.
+			%
+		\end{minipage}
+	} is given pointwise order
+	$\sqsubseteq$,
+	%
+	\[
+		f \sqsubseteq g \iff f \prths{x} \sqsubseteq_{P'} g \prths{x}
+		\textrm{ for all } x \in P, \quad f, g \in \brackets{P \toc P'},
+	\]
+	it becomes a predomain where the limit of a chain $\braces{f_n}_{n \geq 0}$ is
+	defined pointwise $x \mapsto \bigsqcup_{n = 0}^\infty f_n \prths{x}$.
+	%
+	Furthermore, if $P'$ is a domain with the least element $\bot'$, then
+	$\brackets{P \toc P'}$ is also a domain with $x \mapsto \bot'$ as its least
+	element.
+	%
+	\item
+	%
+	$D$ is a domain with the least element $\bot$.
+	%
+	Define $Y_D$ to be the following function from $\brackets{D \toc D}$ to $D$:
+	%
+	\[
+		Y_D \prths{f} = \bigsqcup_{n = 0}^{\infty} f^n \prths{\bot}.
+	\]
+	%
+	\begin{lemma}
+		%
+		$Y_D$ is continuous\footnote{%
+			This means that the very act of computing a fixed point of a given function is continuous.%
+		}.
+		%
+	\end{lemma}
+	\begin{proof}
+		%
+		Exercise.
+		%
+	\end{proof}
+	%
+	\item
+	%
+	There are a lot of interesting results in domain theory, some of which we will
+	cover later in the course.
+	%
+	Before finishing this mini review of domain theory, I want to explain the
+	lifting construction.
+	%
+	\begin{enumrm}
+		%
+		\item
+		%
+		\begin{itemize}
+			%
+			\item
+			      %
+			      $P_\bot := P \cup \braces{\bot}$ for a predomain $P$.
+			      %
+			\item
+			      %
+			      $x \sqsubseteq_{P_\bot} y$ iff $x = \bot$ or $x, y \in P \textrm{ and } x \sqsubseteq_P y$
+			      for $x, y \in P_\bot$.
+			      %
+			\item
+			      %
+			      Intuitively, we are adding the least element to $P$ and converting $P$ to a
+			      domain.
+			      %
+		\end{itemize}
+		%
+		\item
+		%
+		$i_\uparrow \in \brackets{P \toc P_\bot}$, sometimes called \ul{unit}.
+		%
+		\[
+			i_\uparrow \prths{x} = x \textrm{ for all } x \in P.
+		\]
+		%
+		\item
+		%
+		For each $f \in \brackets{P \toc P'_\bot}$,
+		%
+		\begin{align*}
+			f_\doublebot              & \in \brackets{P_\doublebot \toc P'_\doublebot} \\
+			f_\doublebot \prths{\bot} & = \bot                                         \\
+			f_\doublebot \prths{x}    & = f \prths{x} \textrm{ for all } x \in P.
+		\end{align*}
+		%
+		sometimes called \ul{Kleisli extension}.
+		%
+		\item
+		%
+		Why should we care about (ii) and (iii)?
+		%
+		Because they allow us to compose continuous functions from $P$ to $P'_\bot$
+		%
+		\[
+			f \in \brackets{P \toc P'_\bot} \; \textrm{ and } \;
+			g \in \brackets{P' \toc P''_\bot} \implies
+			g_\doublebot \circ f \in \brackets{P \toc P''_\bot}.
+		\]
+		%
+		We can view $(-)_\doublebot \circ (-)$ as a new composition operator $\circ'$.
+		%
+		Then, $\circ'$ is associative and $i_\uparrow \circ' f = f = f \circ'
+			i_\uparrow$.
+		%
+		This means that $\prths{-_\bot, i_\uparrow, -_\doublebot}$ gives rise to a
+		monad on predomains.
+		%
+	\end{enumrm}
+	%
+\end{enumcirc}
+
+\section{Denotational semantics of the simple imperative language}
+
+\begin{enumcirc}
+	%
+	\item
+	%
+	Recall that $\Sigma = \gram{var} \to \Z$.
+	%
+	$\Sigma$ is a predomain when given the discrete order $\sqsubseteq$.
+	%
+	(That is, $x \sqsubseteq y$ iff $x = y$ for all $x, y \in \Sigma$.)
+	%
+	\begin{align*}
+		\intexpsem{-}  & \in \gram{intexp} \to \brackets{\Sigma \to \Z} (same as before)  \\
+		\boolexpsem{-} & \in \gram{boolexp} \to \brackets{\Sigma \to \B} (same as before) \\
+		\commexpsem{-} & \in \gram{comm} \to \brackets{\Sigma \toc \Sigma_\bot}
+	\end{align*}
+	%
+	\begin{align*}
+		\bbrackets{\cassign{x}{e}} \sigma     & = \aug{\sigma}{x: \bbrackets{e} \sigma}                                                        \\
+		\bbrackets{\cskip} \sigma             & = \sigma                                                                                       \\
+		\bbrackets{\cseq{c_1}{c_2}} \sigma    & = \bbrackets{c_2}_\doublebot \prths{\bbrackets{c_1} \sigma}                                    \\
+		\bbrackets{\cif{b}{c_1}{c_2}} \sigma  & = \cif{\bbrackets{b} \sigma}{\bbrackets{c_1} \sigma}{\bbrackets{c_2} \sigma}                   \\
+		\bbrackets{\cwhile{b}{c}} \sigma      & = Y_{\Sigma_\bot} \prths{F}                                                                    \\
+		\textrm{ where } F                    & \in \brackets{\Sigma \toc \Sigma_\bot} \toc \brackets{\Sigma \toc \Sigma_\bot}                 \\
+		\textrm{and }F\prths{f}\prths{\sigma} & := \cif{\bbrackets{b} \sigma}{\prths{f_\doublebot \circ \bbrackets{c}} \prths{\sigma}}{\sigma}
+	\end{align*}
+	%
+	Note: $Y_{\Sigma_\bot}$ and $\toc$ are where we get something by using domain
+	theory.
+	%
+	\item
+	%
+	Why \ul{least} fixed point?
+	%
+	Because the least fixed point maps an input state to $\bot$
+	%
+	(denoting non-termination, hence, the absence of any information)
+	%
+	whenever the corresponding output state is not uniquely determined by the
+	equation $F(f) = f$.
+	%
+	For example,
+	%
+	\begin{enumrm}
+		%
+		\item
+		%
+		least fixed point \dots
+		%
+		$\bbrackets{\cwhile{\textrm{true}}{\cskip}} \sigma = \bot$.
+		%
+		\item
+		%
+		non-least fixed point
+		%
+		\dots $\bbrackets{\cwhile{\textrm{true}}{\cskip}} \sigma = \sigma$.
+		%
+		\begin{align*}
+			F\prths{f}\prths{\sigma} & = \cif{\bbrackets{\textrm{true}} \sigma}{\prths{f_\doublebot \circ \bbrackets{\cskip}} \prths{\sigma}}{\sigma} \\
+			                         & = \prths{f_\doublebot \circ \bbrackets{\cskip}} \prths{\sigma}                                                 \\
+			                         & = f_\doublebot \prths{\bbrackets{\cskip} \prths{\sigma}}                                                       \\
+			                         & = f_\doublebot \prths{\sigma}                                                                                  \\
+			                         & = f\prths{\sigma}                                                                                              \\
+		\end{align*}
+		%
+		That is, $F(f) = f$.
+		%
+	\end{enumrm}
+	%
+	Later when we consider the correspondence between denotational semantics and
+	operational semantics, we will answer this question more rigorously.
+	%
+	\item
+	%
+	Design decision of our language seen in the semantics:
+	%
+	\[
+		\intexpsem{-} : \gram{intexp} \to \Sigma \to \Z
+	\]
+	%
+	all integer expressions terminate and do not raise exceptions.
+	%
+	A similar remark applies to boolean expressions as well.
+	%
+	\item
+	%
+	Choosing the type of the semantics function such as
+	%
+	$\gram{intexp} \to \Sigma \to \Z$
+	%
+	is the most important step in defining the semantics.
+	%
+	It also clarifies certain major design decisions of the target programming
+	language.
+	%
+\end{enumcirc}
+
+\section{Variable declaration and substitution}
+
+\begin{enumcirc}
+	%
+	\item
+	%
+	\begin{grammar}
+		<comm> ::= ... | newvar <var> := <intexp> in <comm>
+	\end{grammar}
+	%
+	This is a construct that doesn't increase the expressivity of the language but
+	enables the programmers to combat the complexity of software by introducing the
+	ideas of scope and local variables.
+	%
+	\item
+	%
+	\[
+		\bbrackets{\cnew{v}{e}{c}} \sigma =
+		\prths{
+			\prths{
+				\lambda \sigma' \in \Sigma \;.\; \aug{\sigma'}{v : \sigma v}
+			}_\doublebot \circ \bbrackets{c}
+		} \prths{
+			\aug{\sigma}{v : \bbrackets{e} \sigma}
+		}
+	\]
+	%
+	\dots
+	%
+	$\lambda \sigma' \in \Sigma \;.\; \aug{\sigma'}{v : \sigma v}$
+	%
+	means the function $\sigma' \mapsto \aug{\sigma'}{v: \sigma v}$, restoring the
+	old value.
+	%
+	We didn't have to do something like this when we interpreted quantifications in
+	predicate logic.
+	%
+	This is because there we didn't return a state, but a boolean value.
+	%
+	\item
+	%
+	How do we know that this is a sensible definition?
+	%
+	By checking expected properties like \cref{prop:coincidence} and
+	\cref{prop:renaming}.
+
+	$\fv{c}$ \dots free variables appearing in $c$. (textbook page 40)
+
+	$\fa{c}$ \dots free assigned variables appearing in $c$. (textbook page 41)
+
+	\begin{property}[Coincidence]\label{prop:coincidence}
+		%
+		\;\\
+		%
+		\vspace{-1.5em}
+		%
+		\begin{enumalpha}
+			%
+			\item
+			%
+			$\sigma w = \sigma' w \textrm{ for all } w \in \fv{c}$
+			%
+			\begin{align*}
+				\implies & \prths{\bbrackets{c}\sigma = \bbrackets{c}\sigma' = \bot} \textrm{ or } \\
+				         & \prths{
+					\bbrackets{c}\sigma, \bbrackets{c}\sigma' \in \Sigma \textrm{ and }
+					\prths{\bbrackets{c}\sigma} w = \prths{\bbrackets{c}\sigma'} w \textrm{ for all } w \in \fv{c}
+				}
+			\end{align*}
+			%
+			\item
+			%
+			$
+				\bbrackets{c}\sigma \neq \bot \implies
+				\prths{\bbrackets{c}\sigma} w = \sigma w \textrm{ for all } w \notin \fa{c}.
+			$
+		\end{enumalpha}
+		%
+	\end{property}
+	%
+	\begin{property}[Renaming]\label{prop:renaming}
+		%
+		\begin{multline*}
+			\subsctext{v}{new} \notin \fv{c'} - \braces{v} \\
+			\implies \bbrackets{\cnew{v}{e}{c'}} \sigma =
+			\bbrackets{\cnew{\subsctext{v}{new}}{e}{\subst{c'}{v}{\subsctext{v}{new}}}} \sigma
+		\end{multline*}
+		%
+	\end{property}
+	%
+\end{enumcirc}
+
+\section{Syntactic Sugar}
+
+\begin{enumcirc}
+	%
+	\item
+	%
+	Introduction of a construct by defining its meaning in terms of existing
+	constructs in the language.
+	%
+	\item
+	%
+	Three definitions of for loop:
+	%
+	\begin{enumrm}
+		%
+		\item
+		%
+		$
+			\prths{
+				\cfor{v}{e_0}{e_1}{c}} :=
+			\prths{
+				\cseq{
+					\cassign{v}{e_0}
+				}{
+					\cwhile{v \le e_1}{
+						\prths{
+							\cseq{c}{\cassign{v}{v + 1}}
+						}
+					}
+				}
+			}
+		$
+		%
+		\item
+		%
+		$
+			\prths{
+				\cfor{v}{e_0}{e_1}{c}} :=
+			\prths{
+				\cnew{v}{e_0}{
+					\cwhile{v \le e_1}{
+						\prths{
+							\cseq{c}{\cassign{v}{v + 1}}
+						}
+					}
+				}
+			}
+		$
+		%
+		\item
+		%
+		$
+			\prths{
+				\cfor{v}{e_0}{e_1}{c}} := \\
+			\textrm{\quad}
+			\prths{
+				\cnew{w}{e_1}{
+					\cnew{v}{e_0}{
+						\cwhile{v \le w}{
+							\prths{
+								\cseq{c}{\cassign{v}{v + 1}}
+							}
+						}
+					}
+				}
+			}
+		$,
+
+		where $w \ne v$ and $w \notin \fv{e_0} \cup \fv{c}$.
+		%
+		\item
+		      %
+		      (iii) with the condition $v \notin \fv{c}$.
+		%
+	\end{enumrm}
+	%
+	\item
+	%
+	The for loop should be something easier to understand than while.
+	%
+	In this regard, (i) $<$ (ii) $<$ (iii) $<$ (iv).
+	%
+\end{enumcirc}
+
+\section{Arithmetic errors}
+
+\begin{enumcirc}
+	%
+	\item
+	%
+	How should we deal with $x \div 0$, underflow and overflow?
+	%
+	\item
+	%
+	Two approaches:
+	%
+	\begin{enumrm}
+		%
+		\item
+		%
+		early stop with error
+		%
+		\item
+		%
+		some default choice and computation continued:
+		%
+		ad hoc but it can become less ad hoc if we ensure that the default choices
+		satisfy \ul{certain properties} such as
+		%
+		\begin{align*}
+			\bbrackets{\prths{x + y} \times 0} \sigma                       & = 0                     \\
+			\bbrackets{x \div 0 = x \div 0} \sigma                          & = \ttt                  \\
+			\bbrackets{\cseq{\cassign{y}{x \div 0}}{\cassign{y}{e}}} \sigma & =
+			\bbrackets{\cassign{y}{e}} \sigma \textrm{ when } y \notin \fv{e}                         \\
+			\bbrackets{\cif{x + y = z}{c}{c}} \sigma                        & = \bbrackets{c} \sigma. \\
+		\end{align*}
+		%
+	\end{enumrm}
+	%
+\end{enumcirc}
+
+\section{Soundness and full abstraction}
+
+\begin{enumcirc}
+	%
+	\item
+	%
+	The semantics defined so far looks ok, but is there any formal way to confirm
+	this?
+	%
+	\item
+	%
+	One approach is to show that the semantics assigns the same meaning to two
+	commands $c_1$ and $c_2$ only when $c_1$ and $c_2$ should be equal intuitively.
+	%
+	That is,
+	%
+	\[
+		\bbrackets{c_1} = \bbrackets{c_2} \implies c_1 ``=" \footnotemark c_2.
+	\]
+	\footnoteeqn[0]{our intuitive notion of equality defined separately}
+	%
+	This property is called \ul{soundness}.
+	%
+	Its converse
+	%
+	\[
+		\bbrackets{c_1} = \bbrackets{c_2} \impliedby c_1 ``=" \footnotemark c_2
+	\]
+	%
+	is called \ul{full abstraction}.
+	%
+	\item
+	%
+	Now how to define $``="$?
+	%
+	We use a set of observable phrases with a hole or \ul{contexts}, $\Cc$, and a
+	set of \ul{observations}, $\Oc$, which are functions from observable phrases to
+	outcomes.
+	%
+	\[
+		c_1 ``=" c_2 \iff \forall c \in \Cc \footnotemark ,\; \forall o \in \Oc \footnotemark,\;
+		o \prths{c \brackets{c_1}\footnotemark} = o \prths{c \brackets{c_2}}
+	\]
+	\footnoteeqn[-2]{intuitively means all use cases}
+	\footnoteeqn{intuitively means user's observations}
+	\footnoteeqn{filling the hole of $c$ with $c_1$}
+	%
+	\begin{enumrm}
+		%
+		\item
+		%
+		Intuitively, this condition says that under all use cases, the user cannot
+		observe the difference between $c_1$ and $c_2$.
+		%
+		\item
+		%
+		This is sometimes called \ul{observataional equivalence}.
+		%
+		\item
+		%
+		Note that this is not a syntax-directed (or compositional) definition.
+		%
+	\end{enumrm}
+	%
+	\begin{example}
+		%
+		Assume that $v_0, \dots , v_{n-1}$ are all the free variables in $c_1$ and
+		$c_2$.
+		%
+		\[
+			\Cc = \set{
+				\begin{array}{c}
+					\begin{aligned}
+						\cnew{v_0     & }{k_0}{        \\
+						\cnew{v_1     & }{k_1}{        \\
+						              & \vdots         \\
+						\cnew{v_{n-1} & }{k_{n-1}}{}}}
+					\end{aligned}
+					\\
+					\prths{
+						\begin{aligned}
+							\brackets{-}; \textrm{ if } v_i = k & \textrm{ then } \cskip                         \\
+							                                    & \textrm{ else } \cwhile{\textrm{true}}{\cskip}
+						\end{aligned}
+					}
+				\end{array}
+			}{
+				\begin{array}{c}
+					k, k_0, \dots , k_{n-1} \in \Z \\
+					i \in \braces{0, \dots , n-1}
+				\end{array}
+			}
+		\]
+		%
+		\vspace{1em}
+		%
+		\[
+			\Oc = \braces{\lambda c \;.\; \cif{\bbrackets{c} \sigma_0 = \bot}{0}{1}}
+		\]
+		%
+		where $\sigma_0 \prths{x} = 0$ for all $x$.
+	\end{example}
+
+\end{enumcirc}

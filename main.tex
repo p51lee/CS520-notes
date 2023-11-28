@@ -43,6 +43,8 @@
   {.} % Punctuation after theorem head
   {.5em} % Space after theorem head
   {} % Theorem head spec (can be left empty, meaning ‘normal’)
+
+\theoremstyle{definition}
 \newtheorem{theorem}{Theorem}[chapter]
 \newtheorem*{corollary}{Corollary}
 \newtheorem{property}{Property}[chapter]
@@ -51,13 +53,13 @@
 \newtheorem{note}{Note}
 
 \theoremstyle{tabstyle}
-\newtheorem*{exercise}{Exercise}
+\newtheorem{exercise}{Exercise}[chapter]
 \newtheorem*{example}{Example}
 \newenvironment{exampletab}
-  {\begin{example}\;\begin{adjustwidth}{4em}{0em}}
+  {\begin{example}\;\begin{adjustwidth}{1em}{0em}}
   {\end{adjustwidth}\end{example}}
 \newenvironment{exercisetab}
-  {\begin{exercise}\;\begin{adjustwidth}{4em}{0em}}
+  {\begin{exercise}\;\begin{adjustwidth}{1em}{0em}}
   {\end{adjustwidth}\end{exercise}}
 
 \newenvironment{enumcirc}
@@ -90,19 +92,30 @@
 \newcommand{\subscmath}[2]{#1_{\textrm{\tiny \ensuremath{{}_{#2}}}}}
 \newcommand{\supsctext}[2]{#1^{\textrm{\tiny #2}}}
 \newcommand{\supscmath}[2]{#1^{\textrm{\tiny \ensuremath{{}_{#2}}}}}
+
 \newcommand{\intexpsem}[1]{\bbrackets{#1}_{\textrm{\tiny intexp}}}
+\newcommand{\boolexpsem}[1]{\bbrackets{#1}_{\textrm{\tiny boolexp}}}
+\newcommand{\commexpsem}[1]{\bbrackets{#1}_{\textrm{\tiny comm}}}
 \newcommand{\assertsem}[1]{\bbrackets{#1}_{\textrm{\tiny assert}}}
 \newcommand{\normalsem}[1]{\bbrackets{#1}_{\textrm{\tiny n}}}
 \newcommand{\eagersem}[1]{\bbrackets{#1}_{\textrm{\tiny e}}}
 
+\newcommand{\gram}[1]{\chevrons{\textit{#1}}}
+\newcommand{\doublebot}{%
+  {\bot \mkern-11mu \bot}%
+}
+
 \newcommand{\Z}{\mathbb{Z}}
 \newcommand{\B}{\mathbb{B}}
 \newcommand{\R}{\mathbb{R}}
+\newcommand{\Cc}{\mathcal{C}}
+\newcommand{\Oc}{\mathcal{O}}
 \newcommand{\true}{\textrm{true}}
 \newcommand{\false}{\textrm{false}}
 \newcommand{\ttt}{\textbf{tt}}
 \newcommand{\fff}{\textbf{ff}}
 \newcommand{\fv}[1]{\textrm{FV}\prths{ #1 }}
+\newcommand{\fa}[1]{\textrm{FA}\prths{ #1 }}
 \newcommand{\fvintexp}[1]{\textrm{FV}_{\textrm{\tiny intexp}}\prths{ #1 }}
 \newcommand{\fvassert}[1]{\textrm{FV}_{\textrm{\tiny assert}}\prths{ #1 }}
 \newcommand{\where}{\quad \textrm{ where } \;}
@@ -121,6 +134,7 @@
 \newcommand{\cout}[1]{\textrm{!} #1}
 \newcommand{\cin}[1]{\textrm{?} #1}
 \newcommand{\cnew}[3]{\textrm{newvar } #1 := #2 \textrm{ in } #3}
+\newcommand{\cfor}[4]{\textrm{for } #1 := #2 \textrm{ to } #3 \textrm{ do } #4}
 
 \newcommand{\ibot}{\iota_\bot}
 \newcommand{\iterm}{\iota_{\textrm{term}}}

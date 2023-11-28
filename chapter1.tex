@@ -225,7 +225,7 @@
 		Prove that $A_{\textrm{grammar}}$ is indeed an initial algebra.
 	\end{exercise}
 
-	\begin{exercise}
+	\begin{exercisetab}
 		Let $A_0$ and $A_0$ be initial algebras of the same signature $S$.
 		%
 		Then, there are homomorphisms
@@ -238,7 +238,7 @@
 		%
 		This means that all initial algebras of $S$ are essentially the same, i.e.
 		isomorphic. Prove this fact.
-	\end{exercise}
+	\end{exercisetab}
 
 \end{enumcirc}
 
@@ -330,12 +330,12 @@
 	\end{enumrm}
 	%
 	\item
-	\begin{exercise}
+	\begin{exercisetab}
 		\[
 			\delta \in \chevrons{var} \rightarrow \chevrons{intexp} \quad \textrm{(substitution)}
 		\]
 		Define $e/\delta$, the application of substitution $\delta$ to $e$.
-	\end{exercise}
+	\end{exercisetab}
 \end{enumcirc}
 
 \section{Structural induction}
@@ -388,7 +388,7 @@
 	\begin{lemma}[Substitution]
 		\[
 			\sigma\prths{x} = \bbrackets{\delta\prths{x}}\sigma^\prime \quad \textrm{for all } x
-			\quad \Rightarrow \quad \bbrackets{e/\delta}\sigma^\prime = \bbrackets{e}\sigma
+			\quad \implies \quad \bbrackets{e/\delta}\sigma^\prime = \bbrackets{e}\sigma
 		\]
 	\end{lemma}
 	\begin{proof}
@@ -752,10 +752,10 @@
 		\fvassert{\forall x .\; p}             & = \textrm{FV}\prths{p} \setminus \braces{x}
 	\end{align*}
 	%
-	\begin{exercise}
+	\begin{exercisetab}
 		Define an algebra for $S_{\textrm{PL}}$ such that the algebra homomorphism from the abstract syntax to
 		this algebra is $\prths{\textrm{FV}_{\textrm{\tiny intexp}}, \textrm{FV}_{\textrm{\tiny assert}}}$.
-	\end{exercise}
+	\end{exercisetab}
 	%
 	\item
 	%
@@ -872,7 +872,7 @@
 		%
 		\[
 			\sigma\prths{w} = \bbrackets{\delta\prths{w}}\sigma^\prime
-			\quad \Rightarrow \quad \bbrackets{p/\delta}\sigma^\prime = \bbrackets{p}\sigma
+			\quad \implies \quad \bbrackets{p/\delta}\sigma^\prime = \bbrackets{p}\sigma
 		\]
 		%
 	\end{property}
@@ -897,7 +897,7 @@
 	\begin{property}[Renaming\footnote{renaming doesn't change the meaning of an assertion}]
 		%
 		\[
-			w \notin \fvassert{q} \backslash \braces{v} \quad \Rightarrow \quad
+			w \notin \fvassert{q} \backslash \braces{v} \quad \implies \quad
 			\bbrackets{\forall w .\; q / v \rightarrow w}\sigma = \bbrackets{\forall v .\; q}\sigma
 		\]
 	\end{property}
