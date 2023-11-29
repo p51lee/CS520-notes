@@ -72,7 +72,50 @@
 	%
 	\begin{exampletab}
 		%
-		\todo
+		\[
+			\subsctext{c}{fib} = \prths{
+				\begin{array}{c}
+					k := 1;\; y := 0;\; x:=1;\; \\
+					\cwhile{k \ne n}{           \\ \prths{t := y;\; y := x;\; x := x + t;\; k := k + 1}}
+				\end{array}
+			}
+		\]
+		%
+		\[
+			\begin{array}{c}
+				\braces{n \ge 0}
+				\subsctext{c}{fib}
+				\braces{x = \textrm{fib}\prths{n}}
+				\qquad \qquad
+				\braces{\true}
+				\subsctext{c}{fib}
+				\braces{x = \textrm{fib}\prths{n}}
+				\\[0.3em]
+				\brackets{n \ge 0}
+				\subsctext{c}{fib}
+				\brackets{x = \textrm{fib}\prths{n}}
+				\qquad \qquad
+				\brackets{\true}
+				\subsctext{c}{fib}
+				\brackets{x = \textrm{fib}\prths{n}}
+				\\[0.3em]
+				\braces{x \ge 0}
+				\subsctext{c}{div3}
+				\braces{x = 3a + b \wedge 0 \le b < 3 \wedge a \ge 0}
+				\\[0.3em]
+				\brackets{x \ge 0}
+				\subsctext{c}{div3}
+				\brackets{x = 3a + b \wedge 0 \le b < 3 \wedge a \ge 0}
+				\\[0.3em]
+				\brackets{\true}
+				\subsctext{c}{div3}
+				\brackets{x = 3a + b \wedge 0 \le b < 3 \wedge a \ge 0}
+				\\[0.3em]
+				\brackets{\true}
+				\subsctext{c}{div3}
+				\brackets{x = 3a + b \wedge 0 \le b < 3 \wedge a \ge 0}
+			\end{array}
+		\]
 		%
 	\end{exampletab}
 	%
@@ -274,7 +317,115 @@
 
 \section{Example proof}
 
-\todo
+\[
+	\subsctext{c}{div3} =
+	\prths{
+		\begin{array}{l}
+			a := 0;                                        \\
+			b := x;                                        \\
+			\textrm{while } \prths{b \geq 3} \textrm{ do } \\
+			\qquad b := b - 3;                             \\
+			\qquad a := a + 1                              \\
+		\end{array}
+	}
+\]
+
+Goal: prove that
+%
+\[
+	\braces{x \ge 0}
+	\subsctext{c}{div3}
+	\braces{x = 3a + b \wedge 0 \le b < 3}
+\]
+
+Proof:
+
+{
+\fontsize{3pt}{3pt}\selectfont
+\[
+	\scriptscriptstyle
+	\inferrule{
+		x \ge 0 \Rightarrow x = 3 \times 0 + x \wedge x \ge 0
+		\\
+		\inferrule{
+			\inferrule{ }{
+				\braces{x = 3 \times 0 + x \wedge x \ge 0}
+				a := 0
+				\braces{x = 3a + x \wedge x \ge 0}
+			}
+		}{
+			\braces{x \ge 0}
+			a := 0
+			\braces{x = 3a + x \wedge x \ge 0}
+		}
+		\\
+		\inferrule{ }{
+			\braces{x = 3a + x \wedge x \ge 0}
+			b := x
+			\braces{x = 3a + b \wedge b \ge 0}
+		}
+	}{
+		\braces{x \ge 0}
+		a := 0;\; b := x
+		\braces{x = 3a + b \wedge b \ge 0}
+	}
+\]
+
+\[
+	\inferrule{
+		\inferrule{
+			\inferrule{
+				\substack{
+					x = 3a + b \wedge b \ge 0 \wedge b \ge 3\\
+					\Downarrow\\
+					x = 3(a + 1) + (b - 3) \wedge b - 3 \ge 0\\
+				}
+				\\
+				\inferrule{ }{
+					\braces{x = 3(a + 1) + (b - 3) \wedge b - 3 \ge 0}
+					b := b - 3
+					\braces{x = 3(a + 1) + b \wedge b \ge 0}
+				}
+			}{
+				\braces{x = 3a + b \wedge b \ge 0 \wedge b \ge 3}
+				b := b - 3
+				\braces{x = 3(a + 1) + b \wedge b \ge 0}
+			}
+			\\
+			\inferrule{ }{
+				\braces{x = 3(a + 1) + b \wedge b \ge 0}
+				a := a + 1
+				\braces{x = 3a + b \wedge b \ge 0}
+			}
+		}{
+			\braces{x = 3a + b \wedge b \ge 0 \wedge b \ge 3}
+			b := b - 3;\; a := a + 1
+			\braces{x = 3a + b \wedge b \ge 0}
+		}
+	}{
+		\braces{x = 3a + b \wedge b \ge 0}
+		\cwhile{b \ge 3}{b := b - 3;\; a := a + 1}
+		\braces{x = 3a + b \wedge 0 \le b < 3}
+	}
+\]
+
+\[
+	\inferrule
+	{
+		\braces{x \ge 0}
+		a := 0;\; b := x
+		\braces{x = 3a + b \wedge b \ge 0}
+		\\
+		\braces{x = 3a + b \wedge b \ge 0}
+		\cwhile{b \ge 3}{b := b - 3;\; a := a + 1}
+		\braces{x = 3a + b \wedge 0 \le b < 3}
+	}{
+		\braces{x \ge 0}
+		\textrm{c}_{div3}
+		\braces{x = 3a + b \wedge 0 \le b < 3}
+	}
+\]
+}
 
 \begin{enumcirc}
 	%
@@ -293,13 +444,50 @@
 
 	\begin{exercisetab}
 		%
-		\todo
+		Prove:
+		%
+		\begin{enumalpha}
+			%
+			\item
+			%
+			\[
+				\braces{n \ge 1}
+				\subsctext{c}{fib}
+				\braces{x = \textrm{fib}\prths{n}}
+			\]
+			%
+			\item
+			%
+			\[
+				\subsctext{c}{Euclid} =
+				\prths{
+					\begin{array}{l}
+						while \prths{a \ne b} \textrm{ do }                  \\
+						\qquad \textrm{if } a > b \textrm{ then } a := a - b \\
+						\qquad \textrm{else } b := b - a
+					\end{array}
+				}
+			\]
+			%
+			\[
+				\braces{a \ge 1 \wedge b \ge 1 \wedge a = a_0 \wedge b = b_0}
+				\subsctext{c}{Euclid}
+				\braces{a = \textrm{gcd}\prths{a_0, b_0}}
+			\]
+			%
+		\end{enumalpha}
 		%
 	\end{exercisetab}
 
 	\begin{exercisetab}
 		%
-		\todo
+		Find a forward rule for assignment.
+		%
+		That is, for all $p$ and $x, e$, find $q$ s.t.
+		%
+		\[
+			\inferrule{ }{\brackets{p} x := e \brackets{q}}
+		\]
 		%
 	\end{exercisetab}
 	%
