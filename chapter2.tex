@@ -200,6 +200,35 @@
 	\end{definition}
 	%
 	\begin{definition}
+		A \ul{pre-domain} is a poset $\prths{S, \sqsubseteq}$ such that \ul{all
+			chains have least upper bounds}.
+		%
+		That is, for every chain $\braces{x_n}_{n \geq 0}$ in $S$, there exists $y$
+		%
+		\footnote{notation for $y$: $\displaystyle\bigsqcup_{n \geq 0} x_n$}
+		%
+		in $S$ s.t.
+		%
+		\begin{enumrm}
+			%
+			\item
+			%
+			\footnote{$y$ is an upper bound}
+			%
+			$x_n \sqsubseteq y$ for all $n \geq 0$
+			%
+			\item
+			%
+			\footnote{$y$ is the least such}
+			%
+			for any $z$ in $S$, if $x_n \sqsubseteq z$ for every $n \geq 0$, then $y
+				\sqsubseteq z$.
+			%
+		\end{enumrm}
+		%
+	\end{definition}
+	%
+	\begin{definition}
 		%
 		A \ul{domain} is a pre-domain $\prths{S, \sqsubseteq}$ that has
 		%
@@ -256,7 +285,7 @@
 		%
 		\item
 		%
-		$x \subseteq y$ \dots intuitively means that $y$ has more information than $x$ or
+		$x \sqsubseteq y$ \dots intuitively means that $y$ has more information than $x$ or
 		$x$ and $y$ have the same amount of information.
 		%
 		\begin{exampletab}
@@ -265,19 +294,49 @@
 				%
 				\item
 				%
-				\todo
+				$\Z^* \cup \Z^\omega$ \dots finite or infinite sequence \footnote{
+					results produced so far by sequence-producing computation.
+				} of integers.
+				%
+				(without the infinite part, not a pre-domain)
+				%
+				$x \sqsubseteq y$ iff $x$ is an initial subsequence (or prefix) of $y$.
+				%
+				\begin{align*}
+					\chevrons{3, 1, 4} & \sqsubseteq \chevrons{3, 1, 4, 1, 5, 9} \\
+					\chevrons{3, 1, 4} & \not\sqsubseteq \chevrons{3, 1, 5, 9}   \\
+				\end{align*}
 				%
 				\item
 				%
-				\todo
+				$\Z_{\bot} \defeq \Z \cup \braces{\bot}$ \dots lifted $\Z$.
+				%
+				\footnote{integer output of an integer-returning computation}
+				%
+				\[
+					\forall x, y \in \Z_{\bot}, \quad x \sqsubseteq y \iff x = \bot \textrm{ or } x = y.
+				\]
 				%
 				\item
 				%
-				\todo
+				$\prths{2^\Z, \subseteq}$ \dots power set of $\Z$.
 				%
 				\item
 				%
-				\todo
+				vertical domain of natural numbers \dots
+				%
+				$
+					\left.
+					\begin{array}{c}
+						\infty =: \top \\
+						\vdots         \\
+						2              \\
+						1              \\
+						0 =: \bot
+					\end{array}
+					\right)
+					=: \N^\top
+				$
 				%
 			\end{enumalpha}
 		\end{exampletab}
@@ -298,21 +357,45 @@
 				%
 				\item
 				%
-				\todo
+				\begin{align*}
+					\textrm{set}                                    & \in \brackets{Z^{*,\omega} \to 2^\Z} \\
+					\textrm{set} \prths{\chevrons{x_1, \dots, x_n}} & = \braces{x_1, \dots, x_n}           \\
+					\textrm{set} \prths{\chevrons{x_1, x_2, \dots}} & = \braces{x_1, x_2, \dots}           \\
+				\end{align*}
+				%
+				If $A \subseteq \textrm{set}\prths{s}$ and $A$ is finite, then there is a
+				finite prefix $s_0$ of $s$ (i.e., $s_0 \sqsubseteq s$) s.t. $A \subseteq
+					\textrm{set}\prths{s_0}$.
 				%
 				\begin{exercisetab}
 					%
-					\todo
+					Show that if $f \in \brackets{Z^{*,\omega} \to 2^\Z}$ is continuous, it
+					satisfies the above property.
+					%
+					Also, show that if $f \in \brackets{Z^{*,\omega} \to 2^\Z}$ is monotone and
+					satisfies the property, then $f$ is continuous.
 					%
 				\end{exercisetab}
 				%
 				\item
 				%
-				\todo
+				$f \in \brackets{2^\Z \to \N^\top}$
+				%
+				\[
+					f \prths{A} = \begin{cases}
+						\abs{A} \textrm{ if } $A$ \textrm{ is finite } \\
+						\top \textrm{ if } $A$ \textrm{ is infinite }
+					\end{cases}
+				\]
 				%
 				\begin{exercisetab}
 					%
-					\todo
+					A function from $2^\Z$ to a predomain $P$ is \ul{finitely generated} if for all
+					$A \in 2^\Z$, $f \prths{A}$ is the least upper bound of
+					%
+					$\set{f\prths{A_0}}{A_0 \subseteq A \textrm{ and } A_0 \textrm{ is finite}}$.
+					%
+					Show that $f$ is continuous iff it is finitely generated.
 					%
 				\end{exercisetab}
 				%
