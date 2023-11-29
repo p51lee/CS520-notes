@@ -125,6 +125,360 @@
 		\bbrackets{p} \sigma = \ttt \implies \bbrackets{c} \sigma \neq \bot \wedge
 		\bbrackets{q} \prths{\bbrackets{c} \sigma} = \ttt
 	\end{align*}
-
+	%
 \end{enumcirc}
+
+\section{Inference rules}
+
+\begin{enumcirc}
+	%
+	\item
+	%
+	Methods or rules for proving or deriving partial or total correctness triples.
+	%
+	\item
+	%
+	\;\vspace{-1.5em}
+	%
+	\[
+		\inferrule{\textrm{premises}}{\textrm{conclusion}}
+		\qquad \qquad
+		\inferrule{\varphi_1 \quad \varphi_2 \quad \dots \quad \varphi_n}{\psi}
+	\]
+	%
+	(if $\varphi_1, \varphi_2, \dots, \varphi_n$ are true, then $\psi$ is true)
+	%
+	\item
+	%
+	Rules associated with program constructs:
+	%
+	\[
+		\begin{array}{c}
+			\inferrule
+			{ }
+			{\braces{p} \cskip \braces{p}}
+			\qquad \qquad
+			\inferrule
+			{ }
+			{\brackets{p} \cskip \brackets{p}}
+			\\[2em]
+			\inferrule
+			{\braces{p} c_1 \braces{r}                    \\ \braces{r} c_2 \braces{q}}
+			{\braces{p} c_1 ; c_2 \braces{q}}
+			\qquad \qquad
+			\inferrule
+			{\brackets{p} c_1 \brackets{r}                \\ \brackets{r} c_2 \brackets{q}}
+			{\brackets{p} c_1 ; c_2 \brackets{q}}
+			\\[2em]
+			\inferrule
+			{\braces{p \wedge b} c_1 \braces{q}           \\ \braces{p \wedge \neg b} c_2 \braces{q}}
+			{\braces{p} \cif{b}{c_1}{c_2} \braces{q}}
+			\qquad \qquad
+			\inferrule
+			{\brackets{p \wedge b} c_1 \brackets{q}       \\ \brackets{p \wedge \neg b} c_2 \brackets{q}}
+			{\brackets{p} \cif{b}{c_1}{c_2} \brackets{q}}
+			\\[2em]
+			\inferrule
+			{ }
+			{\braces{\subst{q}{x}{e}} x := e \braces{q}}
+			\qquad \qquad
+			\inferrule
+			{ }
+			{\brackets{\subst{q}{x}{e}} x := e \brackets{q}}
+			\\[2em]
+			\inferrule
+			{\braces{i \wedge b} c \braces{i}}
+			{\braces{i} \cwhile{b}{c} \braces{i \wedge \neg b}}
+			\qquad \quad
+			\inferrule
+			{i \wedge b \Rightarrow e \ge 0 \footnotemark \\ \brackets{i \wedge b \wedge e = v_0 \footnotemark} c \brackets{i \wedge e < v_0}}
+			{\brackets{i} \cwhile{b}{c} \brackets{i \wedge \neg b}}
+		\end{array}
+	\]
+	\footnoteeqn[-1]{$i \wedge b \Rightarrow e \ge 0$ should be valid. That is, $\bbrackets{i \wedge b \Rightarrow e \ge 0} \sigma = \ttt$ for all $\sigma$.}
+	\footnoteeqn{when $v_0$ does not occur free in $i$, $b$, $c$ or $e$}
+	%
+	\begin{enumrm}
+		%
+		\item
+		%
+		Note that rules for total correctness and the corresponding ones for partial
+		correctness are identical except for the case of loop.
+		%
+		This is expected because these two notions differ only in their treatment of
+		non-termination.
+		%
+		\item
+		%
+		The rules for while require that $i$ should be preserved by the body of the
+		loop.
+		%
+		The one for total correctness additionally requires that the value of $e$
+		should decrease whenever we run the loop body $c$ once, but it cannot be
+		negative.
+		%
+		All these requirements together give the conclusions of the rules.
+		%
+		\item
+		%
+		The rules for assignment also deserve some thoughts.
+		%
+		They in a sense say that running an assignment backward symbolically is the
+		same as doing substitution.
+		%
+		It holds because of the substitution theorem (Prop 1.3 and Prop 1.4 in the
+		textbook).
+
+		Reminder of the theorem specialized to our case here:
+		%
+		\[
+			\begin{tikzcd}[cramped, sep=7em]
+				\Sigma
+				\arrow[r, "\lambda \sigma . \aug{\sigma}{x:\bbrackets{e}\sigma}"]
+				\arrow[d, swap, "\bbrackets{\subst{q}{x}{e}}"] &
+				\Sigma
+				\arrow[d, "\bbrackets{q}"]\\
+				\B \arrow[r,-,double, "="] &
+				\B
+			\end{tikzcd}
+		\]
+		%
+	\end{enumrm}
+	%
+	Rules not associated with any specific program constructs
+	%
+	(sometimes called structural rules or adaptation rules):
+	%
+	\[
+		\inferrule
+		{p \Rightarrow p' \\ \braces{p'} c \braces{q'} \\ q' \Rightarrow q}
+		{\braces{p} c \braces{q}}
+		\qquad \qquad
+		\inferrule
+		{p \Rightarrow p' \\ \brackets{p'} c \brackets{q'} \\ q' \Rightarrow q}
+		{\brackets{p} c \brackets{q}}
+	\]
+	%
+	They are called \ul{the rule of consequence}.
+	%
+	They often enable us to use the other rules, in particular, those for loop and
+	if.
+	%
+	\item
+	%
+	I omit many structural rules and the rule for newvar.
+	%
+	Look at the textbook if you are interested.
+	%
+\end{enumcirc}
+
+\section{Example proof}
+
+\todo
+
+\begin{enumcirc}
+	%
+	\item
+	%
+	In practice, people use the rule of consequence, without mentioning it
+	explicitly.
+	%
+	Also, they use many derived rules.
+	%
+	\item
+	%
+	This proof has the flavor of running a program backward symbolically because of
+	its heavy use of the assignment rule and the fact that the rule of consequence
+	is used only when it is necessary.
+
+	\begin{exercisetab}
+		%
+		\todo
+		%
+	\end{exercisetab}
+
+	\begin{exercisetab}
+		%
+		\todo
+		%
+	\end{exercisetab}
+	%
+\end{enumcirc}
+
+\section{Soundness}
+
+\begin{theorem}[Soundness theorem]
+	%
+	If $\brackets{p} c \brackets{q}$ is derivable using
+	%
+	\ul{the rules that we studied},
+	%
+	\footnote{called rules in Hoare logic}
+	%
+	then $\bbrackets{\braces{p} c \braces{q}} = \ttt$, i.e.,
+	%
+	the triple $\braces{p} c \braces{q}$ holds.
+	%
+	If $\brackets{p} c \brackets{q}$ is derivable, then
+	%
+	$\bbrackets{\brackets{p} c \brackets{q}} = \ttt$.
+	%
+\end{theorem}
+%
+\begin{proof}
+	%
+	Intuitively, the theorem says that all rules are correct.
+	%
+	In fact, typical proofs of the theorem show the correctness of the rules in the
+	following sense:
+
+	If $\inferrule{\varphi_1 \quad \varphi_2 \quad \dots \quad \varphi_n}{\psi}$
+	%
+	then
+	%
+	\[
+		\bbrackets{\varphi_1} = \ttt \wedge
+		\bbrackets{\varphi_2} = \ttt \wedge \dots \wedge
+		\bbrackets{\varphi_n} = \ttt \implies
+		\bbrackets{\psi} = \ttt.
+	\]
+	%
+	The rules for loop (or while) are the most important cases.
+	%
+	We will consider only the one for partial correctness.
+	%
+	\[
+		\inferrule
+		{\braces{i \wedge b} c \braces{i}}
+		{\braces{i} \cwhile{b}{c} \braces{i \wedge \neg b}}
+	\]
+	%
+	We first do a bit of rewriting for the semantics of specifications.
+	%
+	\begin{multline*}
+		\bbrackets{\brackets{p} c \brackets{q}}
+		\quad \textrm{ iff } \\
+		\forall \sigma \in \Sigma ,\;
+		\bbrackets{p} \sigma = \ttt \implies
+		\bbrackets{q}_\bot \prths{\bbrackets{c} \sigma} \sqsubseteq \ttt \\
+		\textrm{ where }
+		\bbrackets{q}_\bot \in \brackets{\Sigma_\bot \to \B_\bot} \\
+		\textrm{ s.t. }
+		\bbrackets{q}_\bot \sigma = \bbrackets{q} \sigma \textrm{ for all } \sigma \in \Sigma
+		\textrm{ and }
+		\bbrackets{q}_\bot \prths{\bot} = \bot
+	\end{multline*}
+	%
+	We need to prove that, if
+	%
+	\begin{equation}{} \label{eq:while-partial-correctness} \tag{$\star$}
+		\forall \sigma .\;
+		\bbrackets{i \wedge b} \sigma = \ttt \implies
+		\bbrackets{i}_\bot \prths{\bbrackets{c} \sigma} \sqsubseteq \ttt
+	\end{equation}
+	%
+	then
+	%
+	\[
+		\forall \sigma .\;
+		\bbrackets{i} \sigma = \ttt \implies
+		\bbrackets{i \wedge \neg b}_\bot \prths{\bbrackets{\cwhile{b}{c}} \sigma} \sqsubseteq \ttt
+	\]
+
+	Assume that \cref{eq:while-partial-correctness} holds.
+	%
+	Let
+	%
+	\begin{align*}
+		F                          & \in \brackets{\prths{\Sigma \to \Sigma_\bot} \toc \prths{\Sigma \to \Sigma_\bot}}                      \\
+		F \prths{f} \prths{\sigma} & = \cif{\bbrackets{b} \sigma = \ttt}{\prths{ f_\doublebot \circ \bbrackets{c}} \prths{\sigma}}{\sigma}.
+	\end{align*}
+	%
+	Define $f_n := F^n \prths{\bot}$ for all $n \ge 0$.
+	%
+	Then, $\displaystyle \bbrackets{\cwhile{b}{c}} = \bigcup_{n = 0}^\infty f_n$.
+	%
+	We will show that for all $n \ge 0$,
+	%
+	\begin{equation} \label{eq:while-partial-correctness-2} \tag{$\star\star$}
+		\forall \sigma .\;
+		\bbrackets{i} \sigma = \ttt \implies
+		\bbrackets{i \wedge \neg b}_\bot \prths{f_n \prths{\sigma}} \sqsubseteq \ttt.
+	\end{equation}
+	%
+	This is sufficient because for all $\sigma \in \Sigma$ s.t. $\bbrackets{i}
+		\sigma = \ttt$,
+	%
+	\begin{align*}
+		\bbrackets{i \wedge \neg b}_\bot \prths{\bbrackets{\cwhile{b}{c}} \sigma}
+		 & = \bbrackets{i \wedge \neg b}_\bot \prths{\prths{\bigcup_{n = 0}^\infty f_n} \prths{\sigma}}       \\
+		 & = \bbrackets{i \wedge \neg b}_\bot \prths{\bigcup_{n = 0}^\infty f_n \prths{\sigma}}               \\
+		 & = \footnotemark \bigcup_{n = 0}^\infty \bbrackets{i \wedge \neg b}_\bot \prths{f_n \prths{\sigma}} \\
+		 & \sqsubseteq \footnotemark \bigcup_{n = 0}^\infty \ttt = \ttt.
+	\end{align*}
+	\footnoteeqn[-1]{because $\bbrackets{i \wedge \neg b}_\bot$ is continuous}
+	\footnoteeqn{because of \cref{eq:while-partial-correctness-2}}
+	%
+	Our proof of \cref{eq:while-partial-correctness-2} uses induction on $n$.
+
+	\begin{itemize}
+		%
+		\item
+		      %
+		      Base case $n = 0$: $f_0 = \bot$.
+		      %
+		      \[
+			      \therefore
+			      \bbrackets{i \wedge \neg b}_\bot \prths{f_0 \prths{\sigma}} = \bbrackets{i \wedge \neg b}_\bot \prths{\bot} = \bot \sqsubseteq \ttt.
+		      \]
+		      %
+		\item
+		      %
+		      Inductive case $n = m + 1$:
+		      %
+		      Pick $\sigma$ s.t. $\bbrackets{i} \sigma = \ttt$.
+		      %
+		      \begin{align*}
+			       & \quad\, \bbrackets{i \wedge \neg b}_\bot \prths{f_{m + 1} \prths{\sigma}}                                    \\
+			       & = \bbrackets{i \wedge \neg b}_\bot \prths{F\prths{f_m} \prths{\sigma}}                                       \\
+			       & = \bbrackets{i \wedge \neg b}_\bot
+			      \prths{\cif{\bbrackets{b} \sigma = \ttt}{\prths{ {f_m}_\doublebot \circ \bbrackets{c}} \prths{\sigma}}{\sigma}} \\
+			       & = \cif
+			      {\bbrackets{b} \sigma = \ttt}
+			      {\prths{\bbrackets{i \wedge \neg b}_\bot \circ {f_m}_\doublebot} \prths{\bbrackets{c} \prths{\sigma}}}
+			      {\bbrackets{i \wedge \neg b}_\bot \prths{\sigma}}                                                               \\
+		      \end{align*}
+		      %
+		      \vspace{-3em}\\
+		      %
+		      Since $\bbrackets{i} \sigma = \ttt$, if $\bbrackets{b} \sigma \ne \ttt$, then
+		      %
+		      \[
+			      \bbrackets{i \wedge \neg b}_\bot \prths{\sigma} = \bbrackets{i}_\bot \prths{\sigma} = \ttt \sqsubseteq \ttt.
+		      \]
+		      %
+		      If $\bbrackets{b} \sigma = \ttt$ and $\bbrackets{c} \sigma = \bot$, then
+		      %
+		      \[
+			      \prths{\bbrackets{i \wedge \neg b}_\bot \circ {f_m}_\doublebot} \prths{\bbrackets{c} \prths{\sigma}} = \bot \sqsubseteq \ttt.
+		      \]
+		      %
+		      If $\bbrackets{b} \sigma = \ttt$ and $\bbrackets{c} \sigma \ne \bot$, then
+		      %
+		      $\bbrackets{i}_\bot \prths{\bbrackets{c}\sigma} = \ttt$
+		      %
+		      by \cref{eq:while-partial-correctness}.
+		      %
+		      Thus,
+		      %
+		      \[
+			      \prths{\bbrackets{i \wedge \neg b}_\bot \circ {f_m}_\doublebot} \prths{\bbrackets{c} \prths{\sigma}} =
+			      \bbrackets{i \wedge \neg b}_\bot \prths{ f_m \prths{\bbrackets{c} \prths{\sigma}} } \sqsubseteq \ttt
+		      \]
+		      %
+		      by induction hypothesis.
+		      %
+	\end{itemize}
+
+\end{proof}
 
