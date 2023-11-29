@@ -49,9 +49,37 @@
 	\]
 	%
 	in a programming language with the ``\ul{integrate}'' primitive, we can write
-
-	\todo
-
+	%
+	\[
+		\textrm{integrate}
+		\prths{
+			0,
+			1,
+			\lambda x.\;
+			\textrm{integrate}
+			\prths{0, x, \lambda y.\; \prths{x+y} \times \prths{x+y}}
+		}
+	\]
+	%
+	using lambda abstraction.
+	%
+	But without it, we should write
+	%
+	\[
+		\textrm{let }
+		f\prths{x} =
+		\prths{
+			\textrm{let }
+			g\prths{x} = \prths{x+y} \times \prths{x+y} \textrm{ in }
+			\textrm{integrate}\prths{0, x, g}
+		} \textrm{ in }
+		\textrm{integrate}\prths{0, 1, f}
+	\]
+	%
+	According to some rumor that I heard, one motivation for introducing lambda
+	abstraction to java is to help people develop and use libraries with
+	higher-order functions, in particular, collection libraries.
+	%
 \end{enumcirc}
 
 \section{Syntax}
@@ -72,9 +100,43 @@
 	%
 	\item
 	%
-	examples
+	Examples
 	%
-	\todo
+	\[
+		\begin{array}{l}
+			\prths{\lambda x. x \; x} \prths{\lambda z. z \; z}           \\
+			\prths{\lambda x. \prths{\lambda y. y \; x} z} \prths{z \; w} \\
+			\prths{\lambda x. x \; x} \prths{\lambda z. z}                \\
+		\end{array}
+	\]
+	%
+	\begin{itemize}
+		%
+		\item
+		      %
+		      $\lambda x. \lambda y. x$ \dots encoding of true in the lambda calculus
+		      %
+		\item
+		      %
+		      $\lambda x. \lambda y. y$ \dots encoding of false
+		      %
+		\item
+		      %
+		      $\lambda f. \lambda x. x$ \dots encoding of 0
+		      %
+		\item
+		      %
+		      $\lambda f. \lambda x. f \; x$ \dots encoding of 1
+		      %
+		\item
+		      %
+		      $\lambda f. \lambda x. f \; \prths{f \; x}$ \dots encoding of 2
+		      %
+		\item
+		      %
+		      $\lambda f. \lambda x. f \; \prths{f \; \prths{f \; x}}$ \dots encoding of 3
+		      %
+	\end{itemize}
 	%
 	\item
 	%
@@ -125,10 +187,18 @@
 		We write $e_1 \equiv e_2$ to denote their $\alpha$-equivalence.
 		%
 		\begin{example}
-			\todo
+			%
+			\begin{align*}
+				\prths{\lambda x. x} \prths{\lambda z. z} & \equiv
+				\prths{\lambda x. x} \prths{\lambda y. y}          \\
+				\prths{\lambda x. \lambda y. x}           & \equiv
+				\prths{\lambda y. \lambda x. y}                    \\
+			\end{align*}
+			%
 		\end{example}
 		%
 	\end{enumrm}
+	%
 \end{enumcirc}
 
 \section{Reduction}
@@ -204,7 +274,20 @@
 	%
 	Here are a few examples that may help you to see what goes on here.
 	%
-	\todo
+	\begin{align*}
+		\prths{\lambda x. y} \prths{\lambda z. z}                    & \rightarrow y \\
+		\prths{\lambda x. x \; x} \prths{\lambda z. z}               & \rightarrow
+		\prths{\lambda z. z} \prths{\lambda z. z} \rightarrow
+		\prths{\lambda z. z}                                                         \\
+		\prths{\lambda x. \prths{lambda y. y \; x} z} \prths{z \; w} & \rightarrow
+		\prths{\lambda x. z \; x} \prths{z \; w} \rightarrow
+		z \; \prths{z \; w}                                                          \\
+		\prths{\lambda x. \prths{lambda y. y \; x} z} \prths{z \; w} & \rightarrow
+		\prths{\lambda y. y \prths{z \; w}} \; z \rightarrow
+		z \; \prths{z \; w}                                                          \\
+	\end{align*}
+	%
+	\vspace{-3em}
 	%
 	\item
 	%
@@ -388,7 +471,7 @@
 		{e \; e' \Rightarrow z}
 	\]
 	%
-	\begin{property}
+	\begin{property} \label{prop:normal-order}
 		%
 		For any closed expression $e$ and canonical form $z$,
 		%
@@ -396,9 +479,15 @@
 		%
 	\end{property}
 	%
-	\begin{exercise}
-		\todo
-	\end{exercise}
+	\begin{exercisetab}
+		%
+		Try to prove \cref{prop:normal-order}.
+		%
+		The proof is in the page 203 / 204 of the textbook.
+		%
+		Reading this proof helped me understand the $\Rightarrow$ relation better.
+		%
+	\end{exercisetab}
 	%
 	\item
 	%
@@ -463,13 +552,66 @@
 		{e \; e' \Rightarrow z}
 	\]
 	%
-	\begin{exercise}
-		\todo
-	\end{exercise}
+	\begin{exercisetab}
+		%
+		\begin{enumalpha}
+			%
+			\item
+			%
+			Show that
+			%
+			\[
+				\prths{\lambda x. x \; x}
+				\prths{
+					\prths{\lambda y. y}
+					\prths{\lambda z. z}
+				}
+				\;\RightarrowE \;
+				\prths{\lambda z. z}.
+			\]
+			%
+			How many times does the redex $\prths{\lambda y. y} \prths{\lambda z. z}$ get
+			contracted?
+			%
+			\item
+			%
+			What can we get on the RHS of $\RightarrowE$ below?
+			%
+			\[
+				\prths{\lambda u. \lambda v. v}
+				\prths{
+					\prths{\lambda x. x \; x}
+					\prths{\lambda x. x \; x}
+				}
+				\;\RightarrowE \;
+				???
+			\]
+			%
+			What about $\Rightarrow$?
+			%
+			\[
+				\prths{\lambda u. \lambda v. v}
+				\prths{
+					\prths{\lambda x. x \; x}
+					\prths{\lambda x. x \; x}
+				}
+				\;\Rightarrow \;
+				???
+			\]
+			%
+			\item
+			%
+			Which one do you like more between $\Rightarrow$ and $\RightarrowE$?
+			%
+			Why?
+			%
+		\end{enumalpha}
+		%
+	\end{exercisetab}
 	%
 \end{enumcirc}
 
-\section{Deotational semantics}
+\section{Denotational semantics}
 
 \begin{enumcirc}
 	%
@@ -727,14 +869,14 @@
 		\begin{array}{c}
 			\displaystyle
 			D_2 = \prths{V_2}_\bot \qquad
-			V_2 \lrsupsubarrow{\phi}{\psi} \brackets{D_2 \toc D_2} \times \brackets{V_2 \toc V_2}                                                                      \\[1em]
-			\normalsem{-} \in \brackets{\chevrons{exp} \rightarrow \brackets{ D_2^{\chevrons{var}} \toc D_2 }}                                                         \\[1em]
-			\normalsem{v}\eta = \eta\prths{v}                                                                                                                          \\
+			V_2 \lrsupsubarrow{\phi}{\psi} \brackets{D_2 \toc D_2} \times \brackets{V_2 \toc V_2}                                                                        \\[1em]
+			\normalsem{-} \in \brackets{\chevrons{exp} \rightarrow \brackets{ D_2^{\chevrons{var}} \toc D_2 }}                                                           \\[1em]
+			\normalsem{v}\eta = \eta\prths{v}                                                                                                                            \\
 			\normalsem{e_0 \; e_1}\eta = \begin{cases}
 				                             \bot                                                       & \quad \textrm{if} \quad \normalsem{e_0}\eta = \bot \\
 				                             \phi\prths{\normalsem{e_0}\eta}\prths{\normalsem{e_1}\eta} & \quad \textrm{otherwise}                           \\
 			                             \end{cases} \\[2em]
-			\normalsem{\lambda x. e}\eta = \psi\prths{\lambda a \in D_2 . \normalsem{e}\aug{\eta}{x:a}}                                                                \\
+			\normalsem{\lambda x. e}\eta = \psi\prths{\lambda a \in D_2 . \normalsem{e}\aug{\eta}{x:a}}                                                                  \\
 		\end{array}
 	\]
 
@@ -744,16 +886,16 @@
 		\begin{array}{c}
 			\displaystyle
 			D_3 = \prths{V_3}_\bot \qquad
-			V_3 \lrsupsubarrow{\phi}{\psi} \brackets{V_3 \toc D_3}                                                                                \\[1em]
-			\eagersem{-} \in \brackets{\chevrons{exp} \rightarrow \brackets{ V_3^{\chevrons{var}} \toc D_3 }}                                     \\[1em]
-			\eagersem{v}\eta = \eta\prths{v}                                                                                                      \\
+			V_3 \lrsupsubarrow{\phi}{\psi} \brackets{V_3 \toc D_3}                                                                                  \\[1em]
+			\eagersem{-} \in \brackets{\chevrons{exp} \rightarrow \brackets{ V_3^{\chevrons{var}} \toc D_3 }}                                       \\[1em]
+			\eagersem{v}\eta = \eta\prths{v}                                                                                                        \\
 			\eagersem{e_0 \; e_1}\eta = \begin{cases}
 				                            \bot                                                     &
 				                            \quad \textrm{if} \quad \eagersem{e_0}\eta = \bot \textrm{ or } \eagersem{e_1}\eta = \bot \\
 				                            \phi\prths{\eagersem{e_0}\eta}\prths{\eagersem{e_1}\eta} &
 				                            \quad \textrm{otherwise}                                                                  \\
 			                            \end{cases} \\[2em]
-			\eagersem{\lambda x. e}\eta = \psi\prths{\lambda a \in V_3 . \eagersem{e}\aug{\eta}{x:a}}                                             \\
+			\eagersem{\lambda x. e}\eta = \psi\prths{\lambda a \in V_3 . \eagersem{e}\aug{\eta}{x:a}}                                               \\
 		\end{array}
 	\]
 
