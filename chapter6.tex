@@ -3,4 +3,759 @@
 Chapter 8 of Tennent's book
 
 \section{Motivation}
-\todo
+
+\begin{enumcirc}
+	%
+	\item
+	%
+	The category theory is a branch of mathematics that studies essentially same or
+	common notions and principles in different areas of mathematics.
+	%
+	It is very abstract, but provides good guidelines about finding right
+	definitions and right or meaningful questions to ask in a new mathematical
+	theory.
+	%
+	\item
+	%
+	The category theory had huge influence on the research on programming
+	languages, such as Scala, Haskell, and Rust.
+	%
+	\item
+	%
+	In this course, we will focus on the influence of the category theory on the
+	semantics research.
+	%
+	We will study abstract categorical concepts that give rise to popular notions
+	appearing in the semantics of programming languages.
+	%
+	Another big objective is to understand a result in the category theory (or a
+	categorical formulation of domain theory) that ensures the existence of certain
+	recursively defined domains, such as the following $\Omega$ that you saw in the
+	chapter 5 of Reynolds' book:
+	%
+	\begin{align*}
+		\Omega       & \simeq \prths{\hat{\Sigma} + \Z \times \Omega + \brackets{\Z \to \Omega}}_\bot \\
+		\hat{\Sigma} & \defeq \Sigma + \Sigma
+	\end{align*}
+	%
+	\item
+	%
+	We will study only a tiny part of the category theory.
+	%
+	If you are excited about it and are willing to read a math book, I recommend
+	Mac Lane's ``Categories for the Working Mathematician''.
+	%
+\end{enumcirc}
+
+\section{Definition of Category}
+
+\begin{definition}
+	%
+	A \ul{category} $\Cc$ is a tuple $\prths{\Obj, \Hom, \circ, \id}$ where
+	%
+	\begin{enumarab}
+		%
+		\item
+		%
+		$\Obj$ is a collection of elements called \ul{objects};
+		%
+		\item
+		%
+		for all objects $x, y \in \Obj$, $\Homset{x}{y}$ is a collection of elements
+		called \ul{morphisms} from $x$ to $y$;
+		%
+		\item
+		%
+		for all objects $x, y, z \in \Obj$, $\circ_{x,y,z}$ (or simply $\circ$) is a
+		map from $\Homset{y}{z} \times \Homset{x}{y}$ to $\Homset{x}{z}$, and is called
+		composition;
+		%
+		\item
+		%
+		for every object $x \in \Obj$, $\id_x$ is an element in $\Homset{x}{x}$, and is
+		called \ul{identity morphism};
+		%
+		\item
+		%
+		these data should satisfy associativity and identity axioms:
+		%
+		\begin{enumalpha}
+			%
+			\begin{minipage}[t]{0.4\textwidth}
+				\item
+				%
+				Associativity:
+				%
+				\begin{align*}
+					 & \forall                   w, x, y, z \in \Obj,         \\
+					 & \forall                   f \in \Homset{w}{x},         \\
+					 & \forall                   g \in \Homset{x}{y},         \\
+					 & \forall                   h \in \Homset{y}{z},         \\
+					 & h \circ \prths{g \circ f}  = \prths{h \circ g} \circ f \\
+				\end{align*}
+				%
+			\end{minipage}
+			%
+			\begin{minipage}[t]{0.4\textwidth}
+				\item
+				%
+				Identity:
+				%
+				\begin{align*}
+					 & \forall x, y \in \Obj,                \\
+					 & \forall f \in \Homset{x}{y},          \\
+					 & f \circ \id_x = f = \id_y \circ f = f
+				\end{align*}
+				%
+			\end{minipage}
+			%
+		\end{enumalpha}
+		%
+	\end{enumarab}
+	%
+\end{definition}
+
+\begin{enumcirc}
+	%
+	\item
+	%
+	Although not perfect, a reasonably good intuition is that a category $\Cc$ is a
+	collection of spaces.
+	%
+	\footnote{spaces that you encounter in mathematics, such
+		as metric spaces, vector spacess, topological spaces, etc.}
+	%
+	The $\Obj$ part of $\Cc$ consists of spaces, and the $\Homset{x}{y}$ part of
+	$\Cc$ consists of maps between spaces that preserve the structures of the
+	spaces.
+	%
+	$\circ$ is then the usual function composition and $\id_x$ is the identity function on $x$.
+	%
+	\item
+	%
+	Here are some examples that match the intuition that I just explained:
+	%
+	\begin{enumrm}
+		%
+		\item
+		%
+		Set \dots category of all sets
+		%
+		\begin{itemize}
+			%
+			\item
+			      %
+			      $\Obj$ is the collection of all sets
+			      %
+			\item
+			      %
+			      $\Homset{x}{y}$ is the set of all functions from $x$ to $y$.
+			      %
+			      Note that since $x, y \in \Obj$, they are sets.
+			      %
+			\item
+			      %
+			      $\circ$ is usual function composition
+			      %
+			\item
+			      %
+			      $\id_x$ is the identity function on $x$
+			      %
+		\end{itemize}
+		%
+		\item
+		%
+		Predom \dots category of all predomains and continuous functions
+		%
+		\begin{itemize}
+			%
+			\item
+			      %
+			      $\Obj$ is the collection of all predomains
+			      %
+			\item
+			      %
+			      $\Homset{x}{y}$ is the set of all continuous functions from $x$ to $y$.
+			      %
+			\item
+			      %
+			      $\circ$ is the function composition
+			      %
+			\item
+			      %
+			      $\id_x$ is the identity function on $x$
+			      %
+		\end{itemize}
+		%
+		\item
+		%
+		Dom \dots Category of domains and continuous functions
+		%
+		\begin{itemize}
+			%
+			\item
+			      %
+			      $\Obj$ is the collection of all domains
+			      %
+			\item
+			      %
+			      $\Homset{x}{y}$ is the set of all continuous functions from $x$ to $y$.
+			      %
+			\item
+			      %
+			      $\circ$ is the function composition
+			      %
+			\item
+			      %
+			      $\id_x$ is the identity function on $x$
+			      %
+		\end{itemize}
+		%
+	\end{enumrm}
+	%
+	Note that Dom is in a sense included in Predom.
+	%
+	(Technically, it is a full subcategory of Predom.)
+	%
+	\item
+	%
+	As indicated by my use of the phrase ``not perfect'', there are categories that
+	do not match the intuition well.
+	%
+	Here is a very well-known example:
+
+	Let $\prths{X, \sqsubseteq}$ be a partially ordered set.
+	%
+	It can be understood as a category:
+	%
+	\begin{itemize}
+		%
+		\item
+		      %
+		      $\Obj = X$
+		      %
+		\item
+		      %
+		      $\Homset{x}{y} = \begin{cases}
+				      \emptyset                    & \text{if } x \not\sqsubseteq y \\
+				      \braces{\star} \footnotemark & \text{if } x \sqsubseteq y     \\
+			      \end{cases}
+		      $
+		      \footnoteeqn[0]{a set with one element. It doesn't matter what that element is.}
+		      %
+		\item
+		      %
+		      $\id_X = \star$
+		      %
+		\item
+		      %
+		      $\circ_{x,y,z} \in \brackets{\Homset{y}{z} \times \Homset{x}{y} \mapsto \Homset{x}{z}}$
+
+		      If $x \sqsubseteq y$ and $y \sqsubseteq z$ (i.e., $\Homset{x}{y} \neq
+			      \emptyset$ and $\Homset{y}{z} \neq \emptyset$),
+		      %
+		      then $\circ_{x,y,z}$ is the constant function to the unique element in
+		      $\Homset{x}{z}$.
+		      %
+		      ($\Homset{x}{z} \ne \emptyset$ in this case because of the transitivity of $\sqsubseteq$.)
+
+		      Otherwise (i.e., $\Homset{x}{y} = \emptyset$ or $\Homset{y}{z} = \emptyset$),
+		      %
+		      $\circ_{x,y,z}$ is the empty function
+		      %
+		      (the function whose graph is the empty set).
+		      %
+	\end{itemize}
+	%
+	\item
+	%
+	In the category theory, we often use commutative diagrams to express the
+	equality of two morphisms.
+	%
+	For instance,
+	%
+	\[
+		\begin{tikzcd}[cramped, sep=3em]
+			x
+			\arrow[r, "f"]
+			\arrow[d, swap, "k"] &
+			y
+			\arrow[d, "g"]\\
+			a
+			\arrow[r,"h"] &
+			z
+		\end{tikzcd}
+	\]
+	%
+	expresses that $x, y, a, z$ are objects in a category and $f, g, h, k$ are
+	morphisms with domains and codomains indicated by the arrows (for instance, $f
+		\in \Homset{x}{y}$), and $g \circ f = h \circ k$.
+	%
+	\footnote{the most important bit}
+	%
+	\item
+	%
+	Another intuition about categories is that objects in a category are types in a
+	programming language and morphisms from $x$ to $y$ are functions in the
+	language from the input of type $x$ to the output of type $y$.
+	%
+\end{enumcirc}
+
+\section{Initial and terminal objects. Product and co-product}
+
+\begin{enumcirc}
+	%
+	\item
+	%
+	In a category $\Cc$, we can build a new object out of existing ones.
+	%
+	Often this new object satisfies one of the well-known conditions, and has a
+	well-known name.
+	%
+	We will study a few such names.
+	%
+	\item
+	%
+	Consider a category $\Cc$ and its objects $x, y \in \Obj$.
+	%
+	\begin{enumrm}
+		%
+		\item
+		%
+		An object $z$ is a \ul{product} of $x$ and $y$, often written as
+		%
+		$z = x \times y$,
+		%
+		if there are morphisms
+		%
+		$\pi_0 \in \Homset{z}{x}$\footnote{often written as $\pi_0 : x \times y \to x$}
+		%
+		and $\pi_1 \in \Homset{z}{y}$\footnote{often written as $\pi_1 : x \times y \to
+				y$}
+		%
+		s.t.
+
+		for all objects $w$ and morphisms
+		%
+		$f: w \to x$\footnote{same as $f \in \Homset{w}{x}$}
+		%
+		and $g: w \to y$, there exists a unique morphism
+		%
+		$h: w \to x \times y$
+		%
+		\footnote{we often write $h$ as $\chevrons{f, g}$. Reynolds writes it as
+			$f\otimes g$.}
+		%
+		with $f = \pi_0 \circ h$ and $g = \pi_1 \circ h$.
+		%
+
+		In practice,
+		%
+		\footnote{! means uniqueness and $\dasharrow$ means existence}
+		%
+		\[
+			\begin{tikzcd}[cramped, sep=3em]
+				x&
+				&
+				y\\
+				&
+				x \times y \arrow[ul, "\pi_0"] \arrow[ur, swap, "\pi_1"]
+				&
+				\\
+				&
+				z \arrow[u, dashed, "!h"] \arrow[uul, "f", bend left = 30] \arrow[uur, swap, "g", bend right = 30]
+				&
+				\\
+			\end{tikzcd}
+		\]
+		%
+		\item
+		%
+		An object $z$ is a \ul{co-product} (or \ul{sum}) of $x$ and $y$, often written
+		as $z = x + y$,
+		%
+		if there are morphisms $\inj_0: x \to x + y$ and $\inj_1: y \to x + y$ s.t.
+
+		for all objects $w$ and morphisms $f: x \to w$ and $g: y \to w$, there exists a
+		unique morphism $h: x + y \to w$
+		%
+		\footnote{often written as $\brackets{f, g}$. Reynolds writes it as $f \oplus g$}
+		%
+		with $f = h \circ \inj_0$ and $g = h \circ \inj_1$.
+
+		In practice,
+		%
+		\[
+			\begin{tikzcd}[cramped, sep=3em]
+				&
+				w
+				&
+				\\
+				&
+				x + y \arrow[u, dashed, "!h"]
+				&
+				\\
+				x \arrow[ur, swap, "\inj_0"] \arrow[uur, "f", bend left = 30]&
+				&
+				y \arrow[ul, "\inj_1"] \arrow[uul, swap, "g", bend right = 30]\\
+			\end{tikzcd}
+		\]
+		%
+		\item
+		%
+		An object $x$ is \ul{initial} if for every object $w$, there exists the unique
+		morphism $h: x \to w$.
+		%
+		\item
+		%
+		An object $x$ is \ul{final} if for every object $w$, there exists the unique
+		morphism $h: w \to x$.
+		%
+		\footnote{$h$ is often written as $!_w$ or $!$}
+		%
+	\end{enumrm}
+	%
+	\item
+	%
+	Note that all of these notions are defined purely in terms of morphisms,
+	without referring to elements of objects.
+	%
+	This is a bit like specifying a property of an abstract data type in terms of
+	its operations, not in terms of its implementations.
+	%
+	\item
+	%
+	In the category Predom, the product of two predomains $P_0$ and $P_1$ that we
+	studied in \cref{ch:failure} is indeed a categorical product in (i).
+	%
+	Also, the sum of $P_0$ and $P_1$ in \cref{ch:failure} is indeed a categorical
+	sum or co-product.
+	%
+	The predomain of the singleton set $\prths{\braces{\star}, \sqsubseteq}$ is a
+	terminal object.
+	%
+	The predomain of the empty set $\prths{\emptyset, \sqsubseteq}$ is an initial
+	object.
+	%
+	\item
+	%
+	Consider the category corresponding to a pratially ordered set $\prths{X,
+			\sqsubseteq}$.
+	%
+	Then, an object $x \in X$ is initial if and only if it is the least element in
+	$X$.
+	%
+	It is final if and only if it is the greatest element.
+	%
+	For objects $x, y$ in $X$, $x + y$ is the least upper bound of $x$ and $y$, and
+	$x \times y$ is the greatest lower bound of $x$ and $y$.
+	%
+\end{enumcirc}
+
+\begin{exercise}
+	%
+	Prove \circled{4} and \circled{5}.
+	%
+\end{exercise}
+
+\section{Functor and Natural Transformation}
+
+\begin{enumcirc}
+	%
+	\item
+	%
+	Intuitively, a functor is a structure-preserving map from one category to
+	another.
+	%
+	A natural transformation is a uniform map from one functor to another.
+	%
+	In PL terms, a functor is a type constructor.
+	%
+	(Recall that in this analogy, an object in a category is a type.)
+	%
+	And a natural transformation is a polymorphic function.
+	%
+	\item
+	%
+	Let $\Cc$ and $\Dc$ be categories.
+	%
+	\begin{definition}
+		%
+		A \ul{functor} $F$ from $\Cc$ to $\Dc$ is a pair of two maps
+		$\subsctext{F}{obj}$ and $\subsctext{F}{mor}$ s.t.
+		%
+		\begin{enumrm}
+			%
+			\item
+			%
+			$\subsctext{F}{obj}$ maps objects in $\Cc$ to objects in $\Dc$.
+			%
+			\item
+			%
+			for objects $x, y \in \Obj\prths{\Cc}$\footnote{objects of $\Cc$},
+			%
+			\[
+				\prths{\subsctext{F}{mor}}_{x,y} \in
+				\brackets{
+					\Homset[\Cc]{x}{y} \to
+					\Homset[\Dc]{\subsctext{F}{obj}\prths{x}}{\subsctext{F}{obj}\prths{y}}}
+			\]
+			%
+			\item
+			%
+			$\subsctext{F}{mor}$ preserves $\circ$ and $\id$:
+			%
+			\begin{enumalpha}
+				%
+				\item
+				%
+				for all objects $x$ of $\Cc$,
+				%
+				\[
+					\prths{\subsctext{F}{mor}}_{x,x}\prths{\id_x} = \id_{\subsctext{F}{obj}\prths{x}}
+				\]
+				%
+				\item
+				%
+				for all morphisms $f \in \Homset[\Cc]{x}{y}$ and $g \in \Homset[\Cc]{y}{z}$,
+				%
+				\[
+					\prths{\subsctext{F}{mor}}_{x,z}\prths{g \circ f} =
+					\prths{\subsctext{F}{mor}}_{y,z}\prths{g} \circ
+					\prths{\subsctext{F}{mor}}_{x,y}\prths{f}
+				\]
+				%
+			\end{enumalpha}
+			%
+		\end{enumrm}
+		%
+	\end{definition}
+	%
+	We use $F$ to mean $\subsctext{F}{obj}$ and $\prths{\subsctext{F}{mor}}_{x,y}$.
+	%
+	\item
+	%
+	To see common examples, we need to understand to product of two categories.
+	%
+	When $\Cc$ and $\Dc$ are categories, \ul{the product category} $\Cc \times \Dc$
+	is defined as follows:
+	%
+	\begin{itemize}
+		%
+		\item
+		      %
+		      $\Obj\prths{\Cc \times \Dc} = \set{\prths{x, y}}{x \in \Obj\prths{\Cc} \wedge y \in \Obj\prths{\Dc}}$
+		      %
+		\item
+		      %
+		      $\Homset[\Cc \times \Dc]{\prths{u, v}}{\prths{x, y}} =
+			      \set{\prths{f, g}}{f \in \Homset[\Cc]{u}{x} \wedge g \in \Homset[\Dc]{v}{y}}$
+		      %
+		\item
+		      %
+		      $\prths{f, g} \circ \prths{f', g'} = \prths{f \circ f', g \circ g'}$
+		      %
+		\item
+		      %
+		      $\id_{\prths{x, y}} = \prths{\id_x, \id_y}$
+		      %
+	\end{itemize}
+	%
+	\item
+	%
+	The $\times, +, \bot$ operators on predomains are in fact functors.
+	%
+	\begin{itemize}
+		%
+		\item
+		      %
+		      $\prths{-}_\bot$ : Predom $\to$ Predom
+
+		      $\prths{-}_\bot \prths{P} = P_\bot$
+
+		      $\prths{-}_\bot \prths{f} = \lambda x.
+			      \begin{cases}
+				      f\prths{x} & \text{if } f\prths{x} \neq \bot \\
+				      \bot       & \text{otherwise}
+			      \end{cases}
+		      $
+		      %
+		\item
+		      %
+		      $\times$\footnote{product functor} : Predom $\times$\footnote{product of categories} Predom $\to$ Predom.
+
+		      $\times \prths{P_0, P_1} = P_0 \times\footnotemark P_1$
+		      \footnoteeqn[0]{product of predomains}
+
+		      $\times \prths{f, g} = \lambda \prths{x, y}. \prths{f\prths{x}, g\prths{y}} = f \times g$
+		      \footnote{Reynolds' notation (and standard notation) that we covered in \cref{ch:failure}}
+		      %
+		\item
+		      %
+		      $+$\footnote{sum functor} : Predom $\times$ Predom $\to$ Predom.
+
+		      $+ \prths{P_0, P_1} = P_0 +\footnotemark P_1$
+		      \footnoteeqn[0]{sum of predomains}
+
+		      $+ \prths{f, g} = \lambda \prths{x, y}. \begin{cases}
+				      \inj_0 \prths{f\prths{u}} & \text{if } x = \inj_0 \prths{u} \\
+				      \inj_1 \prths{g\prths{v}} & \text{if } x = \inj_1 \prths{v}
+			      \end{cases}
+			      = f + g$
+		      \footnote{notation that we used in \cref{ch:failure}}
+		      %
+	\end{itemize}
+	%
+	\item
+	%
+	One other important functor is the identity functor:
+
+	$\Id$: Predom$\to$ Predom
+
+	$\Id\prths{X} = X$
+
+	$\Id\prths{f} = f$
+	%
+	\item
+	%
+	Let $F, G$ be functors from $\Cc$ to $\Dc$.
+	%
+	\begin{definition}
+		%
+		A \ul{natural transformation} $\eta$ from $F$ to $G$,
+		%
+		denoted $\eta: F \xrightarrow{\bullet} G: \Cc \to \Dc$ or
+		%
+		\begin{tikzcd}[cramped, sep=1em]
+			\Cc
+			\arrow[rr, "F", bend left = 40]{}
+			\arrow[rr, swap, "G", bend right = 40]{}
+			&
+			\;\;\, \Downarrow \eta
+			&
+			\Dc
+		\end{tikzcd}%
+		, is a collection of morphisms in $\Dc$ indexed by objects in $\Cc$:
+		%
+		\[
+			\prths{
+				\eta_x : F\prths{x} \to G\prths{x}
+			}_{x \in \Obj\prths{\Cc}}
+		\]
+		%
+		such that
+		%
+		\begin{enumrm}
+			%
+			\item
+			%
+			for each object $x$ in $\Cc$, $\eta_x$ is a $\Dc$-morphism from $F\prths{x}$ to
+			$G\prths{x}$.
+			%
+			\item
+			%
+			for every morphism $f: x \to y$ in $\Cc$ (i.e., $f \in \Homset[\Cc]{x}{y}$),
+			%
+			\[
+				\begin{tikzcd}[cramped, sep=3em]
+					F\prths{x}
+					\arrow[r, "\eta_x"]
+					\arrow[d, swap, "F\prths{f}"] &
+					G\prths{x}
+					\arrow[d, "G\prths{f}"] \\
+					F\prths{y}
+					\arrow[r, swap, "\eta_y"] &
+					G\prths{y}
+				\end{tikzcd}
+			\]
+			%
+			This is called naturality condition.
+			%
+		\end{enumrm}
+		%
+	\end{definition}
+	%
+	\item
+	%
+	One intuition is that $F$ and $G$ are type constructors and $\eta$ is a
+	polymorphic function from $F$ to $G$.
+	%
+	Whenever we are given a type $x$, we have an instantiation of $\eta$ at $x$,
+	that is a function from the type $F \prths{x}$ to the type $G \prths{x}$.
+
+	The condition (i) says that $\eta$ should type check.
+	%
+	The condition (ii) says that what $\eta$ does at $x$ should be identical in a
+	sense to what it does at $y$.
+	%
+	In other words, $\eta$ should bot depend much on its type parameter $x$.
+	%
+	This is called uniformity.
+	%
+	\item
+	%
+	Here are a few examples.
+
+	\begin{enumrm}
+		%
+		\item
+		%
+		$\textrm{unit}$: $\Id \xrightarrow{\bullet} \prths{-}_\bot: \text{Predom} \to \text{Predom}$
+
+		\begin{center}
+			$\textrm{unit}_P \in \brackets{P \to P_\bot}$
+
+			$\textrm{unit}_P\prths{x} = x$
+		\end{center}
+		%
+		\item
+		%
+		Let $\textrm{fst}$ be a functor from $\Cc \times \Dc$ to $\Cc$, defined by
+
+		\begin{center}
+			$\textrm{fst}\prths{x, y} = x$ (for objects)
+
+			$\textrm{fst}\prths{f, g} = f$ (for morphisms)
+		\end{center}
+
+		Then,
+
+		$\pi_0 : \prths{-} \times \prths{-} \xrightarrow{\bullet} \textrm{fst}: \text{Predom} \times \text{Predom} \to \text{Predom}$
+
+		\begin{center}
+			$\prths{\pi_0}_{P, P'} \in \brackets{P \times P' \to P}$
+
+			$\prths{\pi_0}_{P, P'}\prths{a, b} = a$
+		\end{center}
+		%
+	\end{enumrm}
+	%
+	\begin{exercisetab}
+		%
+		Show that $\textrm{unit}$ and $\pi_0$ are indeed natural transformations.
+		%
+	\end{exercisetab}
+	%
+	\begin{exercisetab}
+		%
+		$\pi_1$, $\inj_0$, and $\inj_1$ are also natural transformations if we pick
+		appropriate functors.
+		%
+		Find such functors.
+		%
+	\end{exercisetab}
+	%
+	\item
+	%
+	Notice that all of $\textrm{unit}$, $\pi_0$, $\pi_1$, $\inj_0$, and $\inj_1$ do
+	something very straightforward intuitively.
+	%
+	They don't do any clever tricks.
+	%
+	Naturality condition says in a sense that a natural transformation doesn't do
+	anything clever.
+	%
+	In more positive terms, it says that a natural transformation only performs
+	canonical operations.
+	%
+\end{enumcirc}

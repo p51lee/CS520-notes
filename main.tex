@@ -62,6 +62,9 @@
   {\begin{exercise}\;\begin{adjustwidth}{1em}{0em}}
   {\end{adjustwidth}\end{exercise}}
 
+\newenvironment{enumarab}
+  {\begin{enumerate}[label=(\arabic*)]}
+  {\end{enumerate}}
 \newenvironment{enumcirc}
   {\begin{enumerate}[label=\protect\circled{\arabic*}]}
   {\end{enumerate}}
@@ -111,6 +114,7 @@
 \newcommand{\N}{\mathbb{N}}
 \newcommand{\Cc}{\mathcal{C}}
 \newcommand{\Oc}{\mathcal{O}}
+\newcommand{\Dc}{\mathcal{D}}
 \newcommand{\true}{\textrm{true}}
 \newcommand{\false}{\textrm{false}}
 \newcommand{\ttt}{\textbf{tt}}
@@ -137,6 +141,13 @@
 \newcommand{\cnew}[3]{\textrm{newvar } #1 := #2 \textrm{ in } #3}
 \newcommand{\cfor}[4]{\textrm{for } #1 := #2 \textrm{ to } #3 \textrm{ do } #4}
 
+\newcommand{\Obj}[1][]{\subscmath{\textrm{Obj}}{#1}}
+\newcommand{\Hom}{\textrm{Hom}}
+\newcommand{\id}{\textrm{id}}
+\newcommand{\Id}{\textrm{Id}}
+\newcommand{\Homset}[3][]{\subscmath{\Hom}{#1}\brackets{#2, #3}}
+\newcommand{\inj}{\textrm{inj}}
+
 \newcommand{\ibot}{\iota_\bot}
 \newcommand{\iterm}{\iota_{\textrm{term}}}
 \newcommand{\iabort}{\iota_{\textrm{abort}}}
@@ -148,7 +159,6 @@
 \newcommand{\subst}[3]{#1/_{#2 \rightarrow #3}}
 \newcommand{\RightarrowE}{\Rightarrow_{\textrm{E}}}
 \newcommand{\lrsupsubarrow}[2]{ \mathrel{\mathop{\rightleftarrows}^{\mathrm{#1}}_{\mathrm{#2}}} }
-
 
 \newcommand{\footnoteeqn}[2][1]{\addtocounter{footnote}{#1}\footnotetext{#2}}
 
