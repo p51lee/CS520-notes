@@ -1,3 +1,402 @@
 \chapter{An Eager Functional Language}
 
-\todo
+\section{Motivation}
+
+\begin{enumcirc}
+	%
+	\item
+	%
+	In \cref{ch:lambda-calculus}, we learned the lambda calculus and the eager
+	evaluation for it.
+	%
+	They form the basis of most (or nearly all) call-by-value functional
+	programming languages such as OCaml, Clojure, Scala, Scheme etc.
+	%
+	But developing such a real eager functional programming language involves much
+	more than including the lambda calculus and adopting the eager evaluation.
+	%
+	The goal of this chapter and the subsequent few chapters is to understand these
+	additional things.
+	%
+	\item
+	%
+	In the chapter, we will mainly study two topics related to the following
+	questions:
+	%
+	\begin{enumrm}
+		%
+		\item
+		%
+		In order to help solve most real-world computational problems naturally, a
+		functional programming language should include constants and operations for
+		primitive types, such as \texttt{int}, and mechanisms for building data
+		structures.
+		%
+		How can we do this?
+		%
+		How should we change the abstract grammar, the notion of canonical form,
+		evaluation relation and denotational semantics?
+		%
+		\item
+		%
+		Also, we need to support recursive definitions.
+		%
+		What should we do?
+		%
+	\end{enumrm}
+	%
+	\item
+	%
+	We will focus on answering these questions.
+	%
+	In Chapter 10 of the textbook, Reynolds explains a lot more than what we will
+	cover.
+	%
+	He even gives well-known list-manipulation examples of functional programming.
+	%
+	If you are interested in them, have a look at chapter 10.
+	%
+\end{enumcirc}
+
+\section{Constants and primitive operations, basic (dynamic) types}
+
+\begin{enumcirc}
+	%
+	\item
+	%
+	Recall the syntax of the lambda calculus and the notion of canonical form.
+	%
+	\begin{center}
+		\begin{minipage}{0.5\textwidth}
+			\begin{grammar}
+				<exp> ::= <var>
+				| <exp> <exp>
+				| $\lambda$ <var> . <exp>
+
+				<cfm> ::= <funcfm>
+
+				<funcfm> ::= $\lambda$ <var> . <exp>
+			\end{grammar}
+		\end{minipage}
+	\end{center}
+	%
+	Here we expressed the notion of canonical forms using the abstract grammar.
+
+	We also recall the rules for evaluation; where we omit $\textrm{E}$ in
+	$\RightarrowE$ since we are interested in eager evaluation only here.
+
+	Canonical Forms
+	%
+	\[
+		\inferrule{\;}{\lambda v. e \RightarrowE \lambda v. e}
+	\]
+
+	$\beta_\textrm{E}$-evaluation
+	%
+	\[
+		\inferrule
+		{
+			e \RightarrowE \lambda v . e'' \\
+			e' \RightarrowE z' \\
+			\prths{\subst{e''}{v}{z'}} \RightarrowE z}
+		{e \; e' \Rightarrow z}
+	\]
+
+	($z$ and $z'$ are canonical forms.
+	%
+	In general, we use $z$ with primes, subscripts or superscripts to denote
+	canonical forms.)
+	%
+	\item
+	%
+	Adding constants, primitive operations, and those for basic type constructors
+	(tuple, alternative / sum) amounts to extending $\gram{exp}$, $\gram{cfm}$, and
+	$\Rightarrow$.
+	%
+	Extending $\gram{cfm}$ with more cases intuitively means that we make the
+	language support values other than lambda expressions.
+	%
+	The extension of $\Rightarrow$ encodes the meanings of newly introduced
+	constants and operations.
+	%
+	\item
+	%
+	We add four new kinds of values.
+	%
+	That is, we change the grammar for $\gram{cfm}$ as follows:
+	%
+	\begin{center}
+		\begin{minipage}{0.4\textwidth}
+			\grammarindent5em
+			\begin{grammar}
+				<cfm> ::= <funcfm>
+				\alt <intcfm> \;|\; <boolcfm>
+				\alt <tuplecfm> \;|\; <altcfm>
+
+				<intcfm> ::= \dots \;|\; -2 \;|\; -1 \;|\; 0 \;|\; 1 \;|\; 2 \;|\; \dots
+
+				<boolcfm> ::= \true \;|\; \false
+
+				<tuplecfm> ::= $\langle$ <cfm> , \dots , <cfm> $\rangle$
+
+				<altcfm> ::= @ <tag> <cfm>
+
+				<tag> ::= 0 \;|\; 1 \;|\; 2 \;|\; \dots
+			\end{grammar}
+		\end{minipage}
+	\end{center}
+	%
+	This extension means that expressions in this language denote five different
+	kinds of values.
+	%
+	Another important point is that we only include operations for constructing
+	tuples and alternatives, not those for destructing them;
+	%
+	such as projection and case operation.
+	%
+	In a sense, this comes from the fact that destructors represent \ul{unfinished}
+	computation, and we regard something as value or canonical from when it
+	represents \ul{completed} computation.
+	%
+	\item
+	%
+	Next we extend $\gram{exp}$ with appropriate constants and operations so that
+	we can write expressions denoting computations with those newly introduced
+	canonical forms, i.e., integers, booleans, tuples, and alternatives.
+	%
+	\begin{center}
+		\begin{minipage}{0.8\textwidth}
+			\grammarindent5em
+			\begin{grammar}
+				<exp> ::= <var> \;|\; <exp> <exp> \;|\; $\lambda$ <var> . <exp>
+				\alt 0 \;|\; 1 \;|\; 2 \;|\; \dots \;|\; - <exp> \;|\; <exp> $\substack{+\\-\\\times\\\div\\\textrm{rem}}$ <exp>
+				\alt \true \;|\; \false \;|\; $\neg$ <exp> \;|\; <exp> $\substack{\wedge\\\vee\\\Rightarrow\\\Leftrightarrow}$ <exp>
+				\alt if <exp> then <exp> else <exp> \;|\; <exp> $\substack{=\\\ne\\\textrm{\textless}\\\le\\\textrm{\textgreater}\\\ge}$ <exp>
+				\alt $\langle$ <exp> , \dots , <exp> $\rangle$ \footnotemark \;|\; <exp> . <tag> \footnotemark
+				\alt @ <tag> <exp> \footnotemark \;|\; sumcase <exp> of ( <exp>, \dots , <exp> ) \footnotemark
+				\alt error \;|\; typeerror
+			\end{grammar}
+		\end{minipage}
+	\end{center}
+	\footnoteeqn[-3]{constructing a tuple}
+	\footnoteeqn{projection destructing a tuple}
+	\footnoteeqn{constructing an alternative}
+	\footnoteeqn{case analysis for destructing an alternative}
+	%
+	We already said that introducing four new kinds of canonical forms amounts to
+	introducing four new runtime (or dynamic) types to the language, namely, int,
+	bool, tuple and alternative.
+	%
+	For tuple and alternative, we have operations for constructing tuple and
+	alternative expressions, and also operations for destructing them.
+	%
+	This is a typical pattern that appears repeatedly when one designs a new
+	programming language.
+	%
+	When he or she adds a static or dynamic/runtime type to a language, he or she
+	also introduces appropriate constructors and destructors for the type to the
+	language.
+	%
+	\item
+	%
+	Evaluation relation $\Rightarrow$ should also be extended to incorporate
+	intended semantics of newly added operations.
+	%
+	For integers and booleans, we change $\Rightarrow$ according to the standard
+	semantics of primitive operations.
+	%
+	Hence, we give rules for only some operations.
+	%
+	Other cases are similar.
+	%
+	\[
+		\begin{array}{c}
+			\inferrule
+			{e \Rightarrow i}
+			{-e \Rightarrow \hat{-}i}
+			\qquad \qquad
+			\inferrule
+			{e \Rightarrow b}
+			{\neg e \Rightarrow \hat{\neg} b}
+			\\[2em]
+			\inferrule
+			{e \Rightarrow i                                                       \\ e' \Rightarrow i'}
+			{e \textrm{ op } e' \Rightarrow i \hat{\textrm{ op }} i'}
+			\qquad
+			\substack{
+			\textrm{ where } \textrm{op} \in \braces{+,-,\times,=,\ne,<,\le,>,\ge} \\
+				\textrm{ or } \prths{\textrm{op} \in \braces{\div, \textrm{rem}} \textrm{ and } i' \neq 0}
+			}
+			\\[2em]
+			\inferrule
+			{e \Rightarrow b                                                       \\ e' \Rightarrow b'}
+			{e \textrm{ op } e' \Rightarrow b \hat{\textrm{ op }} b'}
+			\qquad
+			\substack{
+				\textrm{ when } \textrm{op} \in \braces{\wedge,\vee,\Rightarrow,\Leftrightarrow}
+			}
+			\\[2em]
+			\inferrule
+			{e \Rightarrow \true                                                   \\ e' \Rightarrow z}
+			{\textrm{if } e \textrm{ then } e' \textrm{ else } e'' \Rightarrow z}
+			\qquad \qquad
+			\inferrule
+			{e \Rightarrow \false                                                  \\ e'' \Rightarrow z}
+			{\textrm{if } e \textrm{ then } e' \textrm{ else } e'' \Rightarrow z}
+		\end{array}
+	\]
+	%
+	Note that $i$ and $b$ are integer and boolean constants, respectively.
+	%
+	Also, I used $\hat{\;}$ to emphasize mathematical operations.
+
+	For operations for tuples and alternatives, we include rules for constructors
+	that just evaluate their arguments, and those for destructors that convert
+	constructed tuples and alternatives back to some of their components.
+	%
+	\[
+		\begin{array}{c}
+			\inferrule
+			{e_0 \Rightarrow z_0 \quad \dots \quad e_{n-1} \Rightarrow z_{n-1}}
+			{\chevrons{e_0, \dots, e_{n-1}} \Rightarrow \chevrons{z_0, \dots, z_{n-1}}}
+			\qquad \qquad
+			\inferrule
+			{e \Rightarrow \chevrons{z_0, \dots, z_{n-1}}}
+			{e . k \Rightarrow z_k}
+			\substack{\textrm{ when } k < n}
+			\\[2em]
+			\inferrule
+			{e \Rightarrow z}
+			{@ \; k \; e \Rightarrow @ \; k \; z}
+			\qquad \qquad
+			\inferrule
+			{e \Rightarrow @ \; k \; z \\ e_k \; z \Rightarrow z'}
+			{\textrm{sumcase} \; e \; \textrm{of} \; \prths{e_0, \dots, e_{n-1}} \Rightarrow z'}
+			\substack{\textrm{ when } k < n}
+		\end{array}
+	\]
+	%
+\end{enumcirc}
+
+\section{Recursion}
+
+\begin{enumcirc}
+	%
+	\item
+	%
+	We include letrec:
+	%
+	\begin{center}
+		\begin{minipage}{0.7\textwidth}
+			\begin{grammar}
+				<exp> ::= \dots \;|\; letrec <var> $\equiv$ $\lambda$ <var> . <exp> in <exp>
+			\end{grammar}
+		\end{minipage}
+	\end{center}
+	%
+	% ($\textrm{letrec } v \equiv \lambda w . e \textrm{ in } e'$)
+	($\lletrec{v}{w}{e}{e'}$)
+	%
+	defines a recursive function $v$ and performs $e'$ with $v$ bound to this
+	recursive function.
+	%
+	Thus,
+	%
+	\[
+		\fv{\lletrec{v}{w}{e}{e'}} = \prths{\prths{\fv{e} \setminus \braces{w}} \cup \fv{e'}} \setminus \braces{v}
+	\]
+	%
+	This means that the occurrence of $v$ in $e$ denotes $\lambda w . e$, the
+	recursive function being defined here, not the value of a free variable $v$.
+	%
+	\item
+	%
+	This construct imposes two important constraints.
+	%
+	First, recursively defined entities should be functions like $\lambda w . e$.
+	%
+	For instance, we can't do
+	%
+	\[
+		\textrm{letrec } v \equiv \chevrons{1, v} \textrm{ in } e
+	\]
+	%
+	which defines an infinite tuple
+	%
+	$v = \chevrons{1, \chevrons{1, \chevrons{1, \dots}}}$.
+
+	Second, the RHS of $\equiv$ should be a canonical form.
+	%
+	For instance, the following is not allowed.
+	%
+	\[
+		\textrm{letrec } v \equiv \prths{\lambda x . \prths{\lambda y . 3}} \prths{\lambda z . z} \textrm{ in } e
+	\]
+	%
+	Both restrictions are included because we use the eager evaluation.
+	%
+	In a programming language based on the normal-order evaluation such as Haskell,
+	we don't need to impose those restrictions.
+	%
+	When we discuss denotational semantics, you will understand where these
+	restrictions come from.
+	%
+	\item
+	%
+	Since adding letrec doesn't add a new kind of denotable values by expressions,
+	we don't change $\gram{cfm}$.
+	%
+	(Although we don't show, letrec can be expressed using lambda expressions and applications.)
+	%
+	But we need to add a rule for evaluating letrec expressions.
+	%
+	Here is the rule.
+	%
+	\[
+		\inferrule
+		{\subst{e'}{v}{\prths{\subst{\lambda w . e}{v}{\lletrec{v}{w}{e}{v}}}} \footnotemark \Rightarrow z}
+		{\lletrec{v}{w}{e}{e'} \Rightarrow z}
+		\footnotemark
+	\]
+	\footnoteeqn[-1]{unrolling of recursive call $v$ in $\lambda w . e$}
+	\footnoteeqn{execution of $e'$ with $v$ bound to its definition}
+	%
+	\item
+	%
+	Programming exercise:
+
+	Suppose that we represent binary trees with integer leaves using alternative
+	and tuple as follows.
+	%
+	\begin{itemize}
+		%
+		\item
+		      %
+		      $@ \; 0 \; n$ \dots for a terminal note (or leaf) labelled by the integer $n$.
+		      %
+		\item
+		      %
+		      $@ \; 1 \; \chevrons{l, r}$ \dots for a non-terminal node with left subtree $l$ and right subtree $r$.
+		      %
+	\end{itemize}
+	%
+	Write a program that sums all the integers in a given tree.
+
+	Answer:
+	\[
+		\begin{array}{l}
+			\lletrec
+			{\textrm{add}}
+			{t}
+			{
+				\textrm{ sumcase } t \textrm{ of } \prths{
+					\lambda n . n,\;
+					\lambda t' . \prths{\textrm{add} \prths{t' . 0} + \textrm{add} \prths{t' . 1}}
+				}
+			}
+			{\textrm{add}}
+		\end{array}
+	\]
+	%
+\end{enumcirc}
+
