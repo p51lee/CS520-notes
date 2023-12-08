@@ -1,5 +1,5 @@
 % \documentclass[12pt]{book}
-\documentclass[ebook,9pt,oneside,openany]{memoir}
+\documentclass[ebook,9pt,twoside,openany]{memoir}
 
 \usepackage[paperwidth=6in, paperheight=9in, margin=0.5in]{geometry}
 % \usepackage[paperwidth=148.5mm, paperheight=210mm, margin=10mm]{geometry}
@@ -29,8 +29,12 @@
 \usepackage{soul}
 \usepackage{pifont}
 \usepackage{tikz-cd}
+\usepackage{hyperref}
 \usepackage[capitalise,nameinlink]{cleveref}
 \usepackage{lmodern}
+\delimitershortfall-1sp
+% \usepackage{mleftright}
+% \mleftright
 
 \crefformat{section}{#2\S{}#1#3}
 
@@ -91,6 +95,7 @@
 \newcommand{\chevrons}[1]{\left\< #1 \right\>}
 \newcommand{\set}[2]{\left\{ #1 \; \middle\vert \; #2 \right\}}
 \newcommand{\aug}[2]{\left[ #1 \; \middle\vert \; #2 \right]}
+\newcommand{\augtwo}[3]{\left[ #1 \; \middle\vert \; #2 \; \middle\vert \; #3 \right]}
 \newcommand{\subsctext}[2]{#1_{\textrm{\tiny #2}}}
 \newcommand{\subscmath}[2]{#1_{\textrm{\tiny \ensuremath{{}_{#2}}}}}
 \newcommand{\supsctext}[2]{#1^{\textrm{\tiny #2}}}
@@ -179,6 +184,32 @@
 \maketitle
 
 \tableofcontents
+
+\chapter*{Preface}
+\addcontentsline{toc}{chapter}{Preface} % If you want it in the table of contents
+
+\noindent\textbf{Editor's Note:}
+
+\noindent
+This document is transcribed from Professor Yang's handwritten graduate
+programming language lecture notes for improved readability and accessibility.
+
+\medskip
+\noindent Should you find any errors within these documents, contributions and
+error reports are welcomed at the following GitHub repository:
+\href{https://github.com/p51lee/CS520-notes}{github.com/p51lee/CS520-notes}.
+
+\medskip
+\noindent In this document, I will be using symbols \ding{168}, \ding{169},
+\ding{170}, \ding{171}, \ding{72}, \ding{96}, and \ding{44} to express the
+additional arrowed notes of the original lecture notes, as a footnote.
+
+\noindent So don't be surprised or confused if you see a footnote symbol in the
+middle of a sentence or an equation; just look down at the bottom of the page to
+see what it means.
+%
+If you are using a PDF viewer, you can click on the footnote symbol to jump to
+the footnote.
 
 \DefineFNsymbols{footsym}{
 	{\tiny\ding{168}}

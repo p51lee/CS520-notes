@@ -400,3 +400,307 @@
 	%
 \end{enumcirc}
 
+\section{Denotational Semantics}
+
+\begin{enumcirc}
+	%
+	\item
+	%
+	Recall the denotational semantics for the lambda calculus, and the eager
+	evaluation, in particular domains used and the form of the semantics function
+	$\bbrackets{-}$.
+	%
+	\begin{align*}
+		D             & \defeq V_\bot                                                                                \\
+		V             & \simeq V \toc D \quad , \quad \textrm{more precisely, } V \lrsupsubarrow{\phi}{\psi} V \to D \\
+		\bbrackets{-} & \in \brackets{\gram{exp} \to V^{\gram{var}} \to D}                                           \\
+	\end{align*}
+	%
+	Since wee added four new kinds of values, we should change $\simeq$ so that the
+	isomorphism says $V$ consists of not just continuous functions but also those
+	new values.
+	%
+	Also, we have to change $V_\bot$ to account for errors and failures of the
+	runtime typechecker.
+	%
+	\item
+	%
+	We use the following $V$ and $V_*$ (which corresponds to $D$ above) and change
+	the form of $\bbrackets{-}$ accordingly.
+	%
+	\begin{align*}
+		V_*                  & \defeq \prths{V + \braces{\textrm{error} ,\; \textrm{typeerror}}}_\bot                                                               \\
+		V                    & \lrsupsubarrow{\phi}{\psi} \subsctext{V}{int} + \subsctext{V}{bool} + \subsctext{V}{fun} + \subsctext{V}{tuple} + \subsctext{V}{alt} \\
+		\subsctext{V}{int}   & \defeq \Z                                                                                                                            \\
+		\subsctext{V}{bool}  & \defeq \B = \braces{\ttt, \fff}                                                                                                      \\
+		\subsctext{V}{fun}   & \defeq V \toc V_*                                                                                                                    \\
+		\subsctext{V}{tuple} & \defeq \bigcup_{n = 0}^\infty V^n = \bigcup_{n = 0}^\infty V \times \dots \times V                                                   \\
+		\subsctext{V}{alt}   & \defeq \N \times V                                                                                                                   \\
+	\end{align*}
+	%
+	\begin{enumrm}
+		%
+		\item
+		%
+		Don't be confused between $V$ here and $V$ in \circled{1}.
+		%
+		They are different.
+		%
+		Also, note the parallel between the definition of $\gram{cfm}$ and the
+		isomorphism for $V$ here.
+		%
+		This isomorphism is in a sense a denotational way of saying there are five
+		kinds of canonical forms (or values).
+		%
+		\item
+		%
+		$V_*$ extends $V$ not just with $\bot$ but also with error and typeerror, so that the semantics can express such errors.
+		%
+		\item
+		%
+		In general, the denotational semantics of an eager functional language has the
+		form:
+		%
+		\[
+			\bbrackets{-} \in \brackets{\gram{exp} \to V^{\gram{var}} \to T \footnotemark \prths{V}}
+		\]
+		\footnoteeqn[0]{$T$: domain constructor like $\prths{-}_\bot$ and $\prths{-}_*$}
+		%
+		and interprets functions using
+		%
+		\[
+			V \toc T\prths{V}
+		\]
+		%
+		This indicates that variables always get bound to values/canonical forms, not
+		to arbitrary computations.
+		%
+	\end{enumrm}
+	%
+	\item
+	%
+	The actual definition of $\bbrackets{-}$ is involved, but in a sense
+	straightforward.
+	%
+	The only things to be noteworthy are the uses of $f_*$ and $g_{\theta *}$ for
+	$\theta \in \braces{\textrm{int}, \textrm{bool}, \textrm{fun}, \textrm{tuple},
+			\textrm{alt}}$.
+	%
+	\[
+		\begin{array}{c}
+			f \in \brackets{V \toc V_*} \qquad f_* \in \brackets{V_* \toc V_*}
+			\\[2em]
+			f_* \prths{a} =
+			\begin{cases}
+				f\prths{b} & \textrm{if } a = \chevrons{0, b} \footnotemark \\
+				a          & \textrm{otherwise}
+			\end{cases}
+			\\[2em]
+			g \in \brackets{V_\theta \toc V_*} \qquad g_{\theta *} \in \brackets{V_* \toc V_*}
+			\\[1em]
+			\prths{
+				\theta \in \braces{\textrm{int}, \textrm{bool}, \textrm{fun}, \textrm{tuple}, \textrm{alt}}
+			}
+			\\[1em]
+			g_{\theta *} \prths{a} =
+			\begin{cases}
+				g\prths{b}                       & \textrm{if } a = \chevrons{0, b} \textrm{ and }
+				\exists i, b' \textrm{ s.t. } \substack{b = \psi \chevrons{i, b'}                  \\ \textrm{ and } b' \in V_\theta} \\
+				\chevrons{1, \textrm{typeerror}} & \textrm{if } a = \chevrons{0, b} \textrm{ and }
+				\neg \prths{\substack{b = \psi \chevrons{i, b'}                                    \\ \textrm{ and } b' \in V_\theta}} \\
+				a                                & \textrm{otherwise}
+			\end{cases}
+		\end{array}
+	\]
+	\footnoteeqn[0]{the first component of $V+\braces{\textrm{error},\textrm{typeerror}}$}
+	%
+	Intuitively, when $g_{\theta *}$ is applied to an element in $V$
+	%
+	(a value, not an error or $\bot$),
+	%
+	i.e. $\chevrons{0, b}$, it first does runtime typechecking and finds out
+	whether $b$ is a value of type $\theta$.
+	%
+	If not, $g_{\theta *}$ returns a typeerror $\chevrons{1, \textrm{typeerror}}$.
+	%
+	If yes, on the other hand, it casts $b$ to a value $b'$ of type $\theta$, and
+	runs $g$ on $b'$.
+	%
+	Thus, $g_{\theta *}$ does type-testing and type-casting.
+	%
+	\item
+	%
+	Here is the definition of $\bbrackets{-}$.
+	%
+	We present only some cases.
+	%
+	Look at the textbook for the complete definition.
+	%
+	\begin{align*}
+		\bbrackets{-}               & \in \brackets{\gram{exp} \to V^{\gram{var}}\footnotemark \to V_*} \\
+		\bbrackets{v} \eta          & = \chevrons{0, \eta\prths{v}}                                     \\
+		\bbrackets{e_0 \; e_1} \eta & =
+		\begin{cases}
+			\bbrackets{e_0} \eta             & \textrm{if } \bbrackets{e_0} \eta \in \braces{\bot, \chevrons{1, \textrm{error}}, \chevrons{1, \textrm{typeerror}}}      \\
+			\chevrons{1, \textrm{typeerror}} & \textrm{else if } \bbrackets{e_0} \eta = \chevrons{0, b} \textrm{ but }
+			\neg \prths{\substack{
+			\exists b' \textrm{ s.t. } b = \psi \chevrons{2, b'}                                                                                                        \\
+			\wedge \; b' \in \subsctext{V}{fun}}}                                                                                                                       \\
+			\bbrackets{e_1} \eta             & \textrm{else if } \bbrackets{e_1} \eta \in \braces{\bot, \chevrons{1, \textrm{error}}, \chevrons{1, \textrm{typeerror}}} \\
+			b'\prths{a}                      & \textrm{else if }
+			\prths{
+				\begin{array}{l}
+					\bbrackets{e_0} \eta = \chevrons{0, b} \textrm{ and }
+					\prths{\substack{
+					\exists b' \textrm{ s.t. } b = \psi \chevrons{2, b'} \\
+					\wedge \; b' \in \subsctext{V}{fun}}}                \\
+					\textrm{ and } \bbrackets{e_1} \eta = \chevrons{0, a}
+				\end{array}
+			}
+		\end{cases}
+	\end{align*}
+	\footnoteeqn[0]{often written as $E$ to emphasize that it is the set of \ul{environments}}
+	%
+	More succinctly, we can write:
+	%
+	\begin{align*}
+		\bbrackets{e_0 \; e_1} \eta                      & =
+		\prths{
+			\lambda f . \prths{ \lambda z . f \prths{z}}_* \prths{\bbrackets{e_1} \eta}
+		}_{\textrm{fun}*} \prths{\bbrackets{e_0} \eta}\footnotemark                       \\
+		\bbrackets{\lambda v . e} \eta                   & =
+		\chevrons{0, \psi\prths{\chevrons{2, \lambda z . \bbrackets{e}\aug{\eta}{v}{z}}}} \\
+		\bbrackets{\chevrons{e_0, \cdots, e_{n-1}}} \eta & =
+		\prths{
+			\lambda z_0 . \cdots \prths{\lambda z_{n-1} . \chevrons{0, \chevrons{z_0, \cdots \!, z_{n-1}}}}_*
+		\! \prths{\bbrackets{e_{n-1}} \eta} \cdots }_* \! \prths{\bbrackets{e_0} \eta}    \\
+		\bbrackets{e.k} \eta                             & =
+		\prths{
+			\lambda t . \textrm{ if } k \in \textrm{dom}\prths{t}\footnotemark
+			\begin{cases}
+				\textrm{ then } \chevrons{0, t_k} \\
+				\textrm{ else } \chevrons{1, \textrm{typeerror}}
+			\end{cases}
+		}_{\textrm{tuple}*} \prths{\bbrackets{e} \eta}                                    \\
+		\bbrackets{@ \; k \; e} \eta                     & =
+		\prths{
+			\lambda z . \chevrons{0, \psi \prths{\chevrons{4, \chevrons{k, z}}}}
+		}_* \prths{\bbrackets{e} \eta}                                                    \\
+	\end{align*}
+	\footnoteeqn[-1]{
+	%
+	$\lambda f$, $\lambda z$ and $f\prths{z}$: function definitions and application in math,
+	%
+	$\prths{\;}_{\textrm{fun}*}$: typechecking and typecasting
+	}
+	\footnoteeqn{$t$ consists of at least $k+1$ components}
+	%
+	\vspace{-4em}
+	%
+	\begin{multline*}
+		\bbrackets{\textrm{sumcase} \; e \; \textrm{of} \; \prths{e_0, \dots, e_{n-1}}} \eta \\
+		= \prths{
+			\lambda \chevrons{k, z} \textrm{ if } k < n
+			\begin{cases}
+				\textrm{ then } \prths{\lambda f . f \prths{z}}_{\textrm{fun}*} \prths{\bbrackets{e_k} \eta} \\
+				\textrm{ else } \chevrons{1, \textrm{typeerror}}
+			\end{cases}
+		}_{\textrm{alt}*} \prths{\bbrackets{e} \eta}
+	\end{multline*}
+	%
+	\begin{align*}
+		\bbrackets{k} \eta                  & = \chevrons{0, \psi \prths{\chevrons{0, k}}}    \\
+		\bbrackets{e_0 + e_1} \eta          & = \prths{
+			\lambda i . \prths{
+				\lambda i' . \chevrons{0, \psi{\chevrons{0, i + i'}}}
+			}_{\textrm{int}*} \prths{\bbrackets{e_1} \eta}
+		}_{\textrm{int}*} \prths{\bbrackets{e_0} \eta}                                        \\
+		\bbrackets{\textrm{typeerror}} \eta & = \chevrons{1, \textrm{typeerror}}              \\
+		\bbrackets{\true} \eta              & = \chevrons{0, \psi \prths{\chevrons{1, \ttt}}} \\
+	\end{align*}
+
+	\begin{exercisetab}
+		%
+		Suppose that $\bbrackets{e} \eta = \bot$.
+		%
+		What are $\bbrackets{e + \true} \eta$ and $\bbrackets{\true + e} \eta$?
+		%
+	\end{exercisetab}
+	%
+	\item
+	%
+	Although complex, the definition of $\bbrackets{e}$ is so far is in a sense
+	straightforward because it is almost automatically derived from our informal
+	understanding of $e$'s meaning,
+	%
+	the form of $\bbrackets{-}$ and the definition of $V$ and $V_*$ (i.e., semantic
+	types), and the idea of inserting type-testing and type-casting using
+	$\prths{-}_{\theta *}$.
+	%
+	But the case for recursive function
+	%
+	\[
+		\bbrackets{\lletrec{v}{u}{e}{e'}} \eta
+	\]
+	%
+	is not that straightforward.
+	%
+	To see why, consider the following naive (and incorrect) attempt:
+	%
+	\[
+		\begin{array}{c}
+			\bbrackets{\lletrec{v}{u}{e}{e'}} \eta =
+			\bbrackets{\,e'\,} \aug{\eta}{v: Y_{V_*}\prths{F}} \\[1em]
+			F: V_* \to V_* \qquad F\prths{b} = \bbrackets{\lambda u . e} \aug{\eta}{v: b}
+		\end{array}
+	\]
+	%
+	What's wrong with this?
+	%
+	$\aug{\eta}{v: Y_{V_*}\prths{F}}$ and $\aug{\eta}{v: b}$ are not environments
+	because $Y_{V_*}\prths{F}$ and $b$ might not be values; i.e., elements of the
+	form $\chevrons{0, c}$ for some $c \in V$.
+	%
+	This mathematical problem comes from the mismatch between the semantics here
+	and the operation semantics
+	%
+	(i.e., evaluation relation)
+
+	What should we do?
+	%
+	We use the fact that $\bbrackets{\lambda u . e} \eta$ is always of the form
+	%
+	\[
+		\chevrons{0, \psi \prths{\chevrons{2, \lambda z . \bbrackets{e} \aug{\eta}{u: z}}}}
+		\in V \toc V_* = \subsctext{V}{fun}.
+	\]
+	%
+	Also, note that although $V$ is not a domain, $\subsctext{V}{fun} = V \toc V_*$
+	is a domain.
+	%
+	Thus, every continuous function on $V \toc V_*$ has the least fixed point.
+	%
+	This means that we can define
+	%
+	\begin{align*}
+		F                     & \in \brackets{\brackets{V \toc V_*} \to \brackets{V \toc V_*}} \\
+		F \prths{f} \prths{z} & = \bbrackets{e}\augtwo{\eta}{v: f}{u: z}
+	\end{align*}
+	%
+	Then, we can interpret the recursive definition as follows:
+	%
+	\[
+		\bbrackets{\lletrec{v}{u}{e}{e'}} \eta =
+		\bbrackets{e'} \aug{\eta}{v: \chevrons{0, \psi\prths{\chevrons{2, \subscmath{Y}{V \toc V_*}\prths{F}}}}}
+	\]
+	%
+	If $v$ is not bound to a function or $v$ is not bound to a canonical form, we
+	cannot use this interpretation.
+	%
+	This is one of the reasons that we consider only this restricted form of
+	recursive definitions in eager functional programming languages.
+	%
+	OCaml adopted the same restriction.
+	%
+\end{enumcirc}
+

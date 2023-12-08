@@ -157,7 +157,10 @@
 		%
 	\end{exampletab}
 	%
+	\newpage
+	%
 	\item
+	%
 	\emph{Algebra homomorphism} $\cdots$ map between algebras that preserves
 	constants and operations.
 	%
@@ -329,13 +332,16 @@
 
 	\end{enumrm}
 	%
-	\item
 	\begin{exercisetab}
+		%
 		\[
 			\delta \in \chevrons{var} \rightarrow \chevrons{intexp} \quad \textrm{(substitution)}
 		\]
+		%
 		Define $e/\delta$, the application of substitution $\delta$ to $e$.
+		%
 	\end{exercisetab}
+	%
 \end{enumcirc}
 
 \section{Structural induction}
@@ -781,7 +787,7 @@
 			\textrm{FV}\prths{\delta\prths{w}}\footnotemark
 		\end{array}
 	\]
-	\footnoteeqn{
+	\footnoteeqn[0]{
 		\begin{minipage}[t]{0.8\textwidth}
 			device that lets us avoid variable capturing; if $v$ is not in the set then $v_{\textrm{\tiny new}} = v$.
 			Otherwise, $v_{\textrm{\tiny new}}$ is the first variable not in the set.
