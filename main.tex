@@ -147,6 +147,25 @@
 \newcommand{\cfor}[4]{\textrm{for } #1 := #2 \textrm{ to } #3 \textrm{ do } #4}
 
 \newcommand{\lletrec}[4]{\textrm{letrec } #1 \equiv \lambda #2 . #3 \textrm{ in } #4}
+\newcommand{\lcallcc}{\textrm{callcc }}
+\newcommand{\lthrow}[2]{\textrm{throw } #1 \; #2}
+\newcommand{\nil}{\textrm{nil}}
+
+\newcommand{\abstr}{\textrm{abstract}}
+\newcommand{\extend}{\textrm{extend}}
+\newcommand{\initenv}{\textrm{initenv}}
+\newcommand{\initcont}{\textrm{initcont}}
+\newcommand{\recenv}{\textrm{revenv}}
+\newcommand{\negate}{\textrm{negate}}
+\newcommand{\addrm}{\textrm{add}}
+\newcommand{\apprm}{\textrm{app}}
+\newcommand{\divrm}{\textrm{div}}
+\newcommand{\mulrm}{\textrm{mul}}
+\newcommand{\ccc}{\textrm{ccc}}
+\newcommand{\thw}{\textrm{thw}}
+\newcommand{\contf}{\textrm{cont}}
+\newcommand{\applyf}{\textrm{apply}}
+\newcommand{\getf}{\textrm{get}}
 
 \newcommand{\Obj}[1][]{\subscmath{\textrm{Obj}}{#1}}
 \newcommand{\Hom}{\textrm{Hom}}
@@ -163,10 +182,14 @@
 \newcommand{\iin}{\iota_{\textrm{in}}}
 \newcommand{\botO}{\bot_\Omega}
 
+\newcommand{\CPS}{\underline{\textrm{CPS}}}
+
 \newcommand{\defeq}{\stackrel{\text{def}}{=}}
+\newcommand{\refeq}{=_{\textrm{ref}}}
 \newcommand{\subst}[3]{#1/_{#2 \rightarrow #3}}
 \newcommand{\RightarrowE}{\Rightarrow_{\textrm{E}}}
 \newcommand{\lrsupsubarrow}[2]{ \mathrel{\mathop{\rightleftarrows}^{\mathrm{#1}}_{\mathrm{#2}}} }
+\newcommand{\dunderline}[1]{\underline{\underline{#1}}}
 
 \newcommand{\footnoteeqn}[2][1]{\addtocounter{footnote}{#1}\footnotetext{#2}}
 
@@ -200,9 +223,10 @@ error reports are welcomed at the following GitHub repository:
 \href{https://github.com/p51lee/CS520-notes}{github.com/p51lee/CS520-notes}.
 
 \medskip
-\noindent In this document, I will be using symbols \ding{168}, \ding{169},
-\ding{170}, \ding{171}, \ding{72}, \ding{96}, and \ding{44} to express the
-additional arrowed notes of the original lecture notes, as a footnote.
+\noindent In this document, to express the additional arrowed notes of the
+original lecture notes as a footnote, I will be using symbols \ding{168},
+\ding{169}, \ding{170}, \ding{171}, \ding{72}, \ding{96}, and \ding{44} as
+footnote symbols.
 
 \noindent So don't be surprised or confused if you see a footnote symbol in the
 middle of a sentence or an equation; just look down at the bottom of the page to

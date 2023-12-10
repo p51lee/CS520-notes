@@ -1,3 +1,994 @@
 \chapter{Continuations in a Functional Language}
 
-\todo
+\section{Motivation}
+
+\begin{enumcirc}
+	%
+	\item
+	%
+	Intuitively, a continuation means the remaining computation.
+	%
+	For instance, when evaluating the subexpression $3 + 4$ in
+	%
+	$\prths{9 \times \prths{8 + \prths{3 + 4}}}$,
+	%
+	we have the continuation that denotes $9 \times \prths{8 + \brackets{}}$, which
+	expresses what we should do after calculating $3 + 4$.
+	%
+	\item
+	%
+	Continuations appear in multiple forms in programming languages.
+	%
+	First, they are used in a particular style of programming, called continuation
+	passing style.
+	%
+	In this style of programming, called CPS, operators like $+$ and $\times$ take
+	continuation parameter $\kappa$ additionally.
+	%
+	For instance,
+	%
+	\begin{align*}
+		\subsctext{+}{CPS} \prths{m, n, \kappa}      & = \kappa \prths{m + n}       \\
+		\subsctext{\times}{CPS} \prths{m, n, \kappa} & = \kappa \prths{m \times n}.
+	\end{align*}
+	%
+	Using these new operations, we can write
+	%
+	$\prths{9 \times \prths{8 + \prths{3 + 4}}}$
+	%
+	as follows:
+	%
+	\[
+		\subsctext{+}{CPS} \prths{
+			3,
+			4,
+			\lambda r_1. \subsctext{+}{CPS} \prths{
+				8,
+				r_1,
+				\lambda r_2. \subsctext{\times}{CPS} \prths{
+					9,
+					r_2,
+					\lambda r_3. r_3
+				}
+			}
+		}.
+	\]
+	%
+	Second, continuations are first-class values, and they are used to express
+	highly generalized \texttt{goto}s in expressive higher-order programming
+	languages, such as Scheme.
+	%
+	Those languages include the construct, \ul{\texttt{callcc}}, and often
+	\ul{\texttt{throw}} as well.
+	%
+	The former is like label in C and C++, and the latter is like \texttt{goto}.
+	%
+	When used wisely, these constructs lead to really cool programming examples
+	that alter the flow of computation in an intricate way.
+	%
+	They are often used to implement coroutine, backtracking, scheduler, generator,
+	etc.
+
+	Third, continuations are also a powerful tool for building a compiler for
+	functional languages.
+	%
+	Some compilers transform programs or expressions to those in continuation
+	passing style in the early phase of compilation.
+	%
+	After this CPS-transformation, expressions no longer depend on whether we use
+	eager evaluation or normal-order evaluation.
+	%
+	Both evaluations give the same result when applied to CPS-transformed
+	expressions.
+
+	Fourth, continuations form a powerful tool in the denotational semantics.
+	%
+	In fact, they frequently feature in mathematics.
+	%
+	Let $V$ be the predomain for values that we looked at in the previous chapter.
+	%
+	Then, semantically, continuations are elements in
+	%
+	\[
+		\brackets{V \toc A}
+	\]
+	%
+	for some domain $A$.
+	%
+	If you studied functional analysis or Banach space or Hilbert space before, you
+	might have seen the dual of a vector space $V$ over $\R$,
+	%
+	\[
+		V^* = \brackets{V \subsctext{\to}{linear} \R},
+	\]
+	%
+	which consists of linear maps from $V$ to $\R$.
+	%
+	$V^*$ can be understood as a space of continuations on $V$.
+	%
+	\item
+	%
+	In this chapter, we will primarily study continuations as new language feature
+	(second point) and as a tool in the semantics (fourth point).
+	%
+	But we will say a few words on the CPS transformation (third point).
+	%
+	\item
+	%
+	Another big part of this chapter is a semantic version of defunctionalization,
+	a technique to replace higher-order functions by records.
+	%
+	This is one of the key techniques in compilation.
+	%
+	Also, a large number of PL researchers, especially those working on
+	object-oriented languages, use defunctionalized denotational semantics.
+	%
+\end{enumcirc}
+
+\section{Continuation Semantics}
+
+\begin{enumcirc}
+	%
+	\item
+	%
+	One way to understand the idea of continuation is to rewrite the semantics of
+	the eager functional programming language in the previous chapter, using
+	continuation.
+	%
+	In this setting, continuations are continuous functions from $V$ to $V_*$.
+	%
+	\[
+		\subsctext{V}{cont} \defeq \brackets{V \toc V_*}
+	\]
+	%
+	They represent the rest of computation.
+	%
+	If we provide the value $a$ of the current computation step to a continuation
+	$\kappa$, the computation (represented by $\kappa\prths{a}$) will perform all
+	the remaining computation steps and output the final result, which is the value
+	of $\kappa\prths{a}$.
+	%
+	\item
+	%
+	Let's define this continuation semantics more formally.
+	%
+	Recall the semantic domains and predomains that we used in the semantics of the
+	eager functional language in the previous chapter.
+	%
+	\[
+		\begin{array}{c}
+			V_*                  =
+			\prths{V + \braces{\textrm{error}, \textrm{typeerror}}}_\bot                                              \\[1em]
+			V                    \lrsupsubarrow{\phi}{\psi}
+			\subsctext{V}{int} + \subsctext{V}{bool} + \subsctext{V}{fun} + \subsctext{V}{tuple} + \subsctext{V}{alt} \\[1em]
+			\subsctext{V}{int}   =
+			\Z \qquad
+			\subsctext{V}{bool}  =
+			\B \qquad
+			\subsctext{V}{fun}   =
+			V \toc V_*                                                                                                \\[1em]
+			\subsctext{V}{tuple} = \bigcup_{n \ge 0} V^n \qquad \subsctext{V}{alt} = \N \times V                      \\[1em]
+			\bbrackets{-}        \in \brackets{\gram{exp} \toc \brackets{V^{\gram{var}} \toc V_*}}
+		\end{array}
+	\]
+	%
+	\item
+	%
+	The key idea of continuation semantics is to add a new input to $\bbrackets{-}$
+	that represents continuation, and also to add a new parameter to each function
+	that again represents continuation.
+	%
+	This means the following two changes:
+	%
+	\begin{align*}
+		\subsctext{V}{cont} & = V \toc V_*                                                 \\
+		\subsctext{V}{fun}  & = V \toc \brackets{\underline{\subsctext{V}{cont}} \toc V_*} \\
+		\bbrackets{-}       & \in \brackets{
+			\gram{exp} \toc
+			\brackets{
+				V^{\gram{var}} \toc
+				\brackets{
+					\underline{\subsctext{V}{cont}} \toc V_*
+				}
+			}
+		}
+	\end{align*}
+	%
+	The remaining parts of the semantic predomains and domains are defined in the
+	same way as before.
+	%
+	\item
+	%
+	Altering $\subsctext{V}{fun}$ and the form of $\bbrackets{-}$ has a huge impact
+	on the defining clauses of $\bbrackets{-}$.
+	%
+	When defining $\bbrackets{-}$, we now have to specify how a given continuation
+	is used and modified.
+	%
+	Observed this change in the following definition of $\bbrackets{-}$.
+	%
+	\begin{align*}
+		\bbrackets{v} \eta \; \kappa       & = \kappa \prths{ \eta \prths{v} } \\
+		\bbrackets{e \; e'} \eta \; \kappa & = \bbrackets{e} \eta \; \prths{
+			\lambda f . \bbrackets{e'} \eta \; \prths{
+				\lambda z . f \; z \; \kappa
+			}
+		}_{\textrm{fun}}                                                       \\
+	\end{align*}
+	%
+	\[ \vdots \]
+	%
+	Here $\prths{-}_\theta$ is similar to $\prths{-}_{\theta*}$ that we looked at
+	before, but it doesn't deal with $\bot$ and errors.
+	%
+	That is, given $f \in V_\theta \to V_*$,
+	%
+	\begin{align*}
+		f_\theta           & \in V_\theta \to V_* \\
+		f_\theta \prths{a} & =
+		\begin{cases}
+			\chevrons{1, \textrm{typeerror}} & \textrm{if } \neg \prths{\substack{\exists i, b \textrm{ s.t. } b \in V_\theta \\ \wedge \; a = \psi\prths{\chevrons{i, b}}}} \\[1em]
+			f \prths{b}                      & \textrm{if }      \prths{\substack{\exists i, b \textrm{ s.t. } b \in V_\theta \\ \wedge \; a = \psi\prths{\chevrons{i, b}}}}
+		\end{cases}
+	\end{align*}
+	%
+	\[ \vdots \]
+	%
+	\begin{align*}
+		\bbrackets{\lambda v . e} \eta \; \kappa         & = \kappa \prths{
+			\psi \chevrons{
+				2, \lambda a . \lambda \kappa' . \bbrackets{e} \aug{\eta}{v:a} \; \kappa'
+			}
+		}                                                                                                                                               \\
+		\bbrackets{n} \eta \; \kappa                     & = \kappa \prths{ \psi \chevrons{0, n} }                                                      \\
+		\bbrackets{-e} \eta \; \kappa                    & = \bbrackets{e} \eta \; \prths{ \lambda i. \; \kappa \prths{ \psi \chevrons{0, -i} } }       \\
+		\bbrackets{e_1 + e_2} \eta \; \kappa             & = \bbrackets{e_0} \eta \; \prths{
+			\lambda i. \bbrackets{e_1} \eta \; \prths{
+				\lambda i'. \; \kappa \prths{ \psi \chevrons{0, i + i'} }
+			}_{\textrm{int}}
+		}_{\textrm{int}}                                                                                                                                \\
+		\bbrackets{\cif{e}{e'}{e''}} \eta \; \kappa      & = \bbrackets{e} \eta \; \prths{
+			\lambda b . \textrm{ if } b \textrm{ then } \bbrackets{e'} \eta \; \kappa \textrm{ else } \bbrackets{e''} \eta \; \kappa
+		}_{\textrm{bool}}                                                                                                                               \\
+		\bbrackets{\true} \eta \; \kappa                 & = \kappa \prths{ \psi \chevrons{1, \ttt} }                                                   \\
+		\bbrackets{\chevrons{e_0, e_1}} \eta \; \kappa   & = \bbrackets{e_0} \eta \; \prths{
+			\lambda a_0 . \bbrackets{e_1} \eta \; \prths{
+				\lambda a_1 . \kappa \prths{ \psi \chevrons{3, \chevrons{a_0, a_1}} }
+			}
+		}                                                                                                                                               \\
+		\bbrackets{e.k} \eta \; \kappa                   & = \bbrackets{e} \eta \; \prths{
+			\lambda t . \textrm{ if } k \in \textrm{dom}\prths{t}
+			\begin{cases}
+				\textrm{then } \kappa \prths{ t_k } \\
+				\textrm{else } \chevrons{1, \textrm{typeerror} }
+			\end{cases}
+		}_\textrm{tuple}                                                                                                                                \\
+		\bbrackets{\lletrec{v}{u}{e}{e'}} \eta \; \kappa & = \bbrackets{e'} \aug{\eta}{v: Y \; F} \; \kappa                                             \\
+		                                                 & F \in \brackets{\subsctext{V}{fun} \toc \subsctext{V}{fun}}                                  \\
+		                                                 & F \prths{f_0} \prths{a} \prths{\kappa'} = \bbrackets{e} \augtwo{\eta}{u:a}{v:f_0} \; \kappa' \\
+	\end{align*}
+	%
+	We omit a few definitions.
+	%
+	You can find them in the page 254-255 of the textbook.
+	%
+	\item
+	%
+	Note that whenever we interpret an expression that includes more than one
+	immediate subexpression, such as $e_0 + e_1$, we construct a new continuation
+	for the subexpressions that will not be evaluated next, such as
+	%
+	\[
+		\prths{
+			\lambda i. \bbrackets{e_1} \eta \; \prths{
+				\lambda i'. \; \kappa \prths{ \psi \chevrons{0, i + i'} }
+			}_{\textrm{int}}
+		}_{\textrm{int}}.
+	\]
+	%
+	Intuitively, this means that the semantics is very explicit about evaluation
+	order.
+	%
+	\item
+	%
+	This semantics can be expressed as syntactic transformation call \ul{CPS
+		transformation}.
+	%
+	Let $\bbrackets{-}_d$ be the direct semantics that we studied in the previous
+	chapter.
+	%
+	Consider an expression $e$ and a fresh variable $\subsctext{v}{cont}$.
+	%
+	Then, this transformation has the following property:
+	%
+	\[
+		\bbrackets{e} \eta \; \kappa \; ``=" \; \footnotemark
+		\bbrackets{\CPS\prths{e, \subsctext{v}{cont}}}_d \aug{\eta}{\subsctext{v}{cont} : \kappa}
+	\]
+	\footnoteeqn[0]{equal when no errors}
+	%
+	As mentioned before, this CPS transformation is often used by a compiler as a
+	preprocessing step.
+	%
+	\item
+	%
+	$
+		\CPS \prths{v, \subsctext{v}{cont}} = \subsctext{v}{cont} \prths{v} \\
+		\CPS \prths{e \; e', \subsctext{v}{cont}} = \CPS \prths{e,
+			\lambda f . \; \CPS \prths{e', \lambda u . \; f \; u \; \subsctext{v}{cont}}
+		} \\
+		\CPS \prths{\lambda v . e, \subsctext{v}{cont}} = \subsctext{v}{cont} \prths{
+			\lambda v.\; \lambda \subsctext{v'}{cont} . \; \CPS \prths{e, \subsctext{v'}{cont}}
+		} \\
+		\CPS \prths{n, \subsctext{v}{cont}} = \subsctext{v}{cont} \prths{n} \\
+		\CPS \prths{-e, \subsctext{v}{cont}} = \CPS \prths{e, \lambda u . \; \subsctext{v}{cont} \prths{-u}} \\
+		\CPS \prths{e_0 + e_1, \subsctext{v}{cont}} = \CPS \prths{e_0,
+			\lambda u_0 . \; \CPS \prths{e_1, \lambda u_1 . \; \subsctext{v}{cont} \prths{u_0 + u_1}}} \\
+		\CPS \prths{\cif{e}{e'}{e''}, \subsctext{v}{cont}} = \CPS \prths{e,
+			\lambda b . \textrm{ if } b \; \begin{cases}
+				\textrm{then } \CPS \prths{e', \subsctext{v}{cont}} \\
+				\textrm{else } \CPS \prths{e'', \subsctext{v}{cont}}
+			\end{cases}
+		} \\
+		\CPS \prths{\true, \subsctext{v}{cont}} = \subsctext{v}{cont} \prths{\true} \\
+		\CPS \prths{\chevrons{e_0, e_1}, \subsctext{v}{cont}} = \CPS \prths{e_0,
+			\lambda u_0 . \; \CPS \prths{e_1, \lambda u_1 . \; \subsctext{v}{cont} \prths{\chevrons{u_0, u_1}}}} \\
+		\CPS \prths{e.k, \subsctext{v}{cont}} = \CPS \prths{e, \lambda u . \; \subsctext{v}{cont} \prths{u.k}} \\
+		\CPS \prths{\lletrec{v}{u}{e}{e'}, \subsctext{v}{cont}} \footnotemark \\
+		{} \qquad = \lletrec{v}{u}{
+			\;\lambda \subsctext{v'}{cont} . \; \CPS \prths{e, \subsctext{v'}{cont}}
+		}{\CPS \prths{e', \subsctext{v}{cont}}} \textrm{ for fresh } \subsctext{v}{cont}.
+	$
+	\footnoteeqn[0]{Sorry, I'm less certain about this case. (editor: seems fine?)}
+	%
+	\item
+	%
+	Note that all function calls after the CPS transformation are the applications
+	of continuation variables to parameters.
+	%
+	Since such variables represent the rest of computation, no calls leave anything
+	to be done after they are complete.
+	%
+	Thus, such calls can be implemented as \texttt{jump}, not as procedure call, by
+	a compiler.
+	%
+	Also, as mentioned before, the CPS-transformed programs produce the same result
+	regardless of whether we are using eager evaluation or normal-order evaluation.
+	%
+	These observations indicate that CPS-transformed programs or expressions are
+	simpler than the original ones.
+	%
+	\item
+	%
+	The transformation in \circled{7} can be obtained systematically from the
+	continuation semantics by removing $\eta$ and all the embeddings and converting
+	$\kappa$ to the variable $\subsctext{v}{cont}$.
+	%
+	This is because they are closely related.
+	%
+\end{enumcirc}
+
+\section{Callcc and throw}
+
+\begin{enumcirc}
+	%
+	\item
+	%
+	Some programming languages allow continuations to be denotable values, and
+	provide language constructs for manipulating continuation values.
+	%
+	\item
+	%
+	Semantically, this means that we change $V$ as follows:
+	%
+	\[
+		V \lrsupsubarrow{\phi}{\psi}
+		\subsctext{V}{int} + \subsctext{V}{bool} + \subsctext{V}{fun} + \subsctext{V}{tuple} + \subsctext{V}{alt} + \underline{\subsctext{V}{cont}}
+	\]
+	%
+	Syntactically, it often involves adding the following two constructs:
+	%
+	\begin{center}
+		\begin{minipage}{0.5\textwidth}
+			\begin{grammar}
+				<exp> ::= callcc <exp> | throw <exp> <exp>
+			\end{grammar}
+		\end{minipage}
+	\end{center}
+	%
+	callcc expects a function as its argument.
+	%
+	$\prths{\lcallcc\prths{\lambda f.e}}$ reifies the current continuation, binds $f$ to it,
+	and executes $e$.
+	%
+	The bound continuation $f$ can be invoked by throw, as in
+	$\prths{\lthrow{f}{3}}$.
+	%
+	This calls the continuation $f$ with the value $3$.
+	%
+	\item
+	%
+	Here are the semantic clauses for callcc and throw:
+	%
+	\begin{align*}
+		\bbrackets{\lcallcc e} \eta \; \kappa                   & =
+		\bbrackets{e} \eta \prths{\lambda f. \; f \prths{\psi \chevrons{5, \kappa \footnotemark}} \kappa }_{\textrm{fun}} \\
+		\bbrackets{\lthrow{e}{e'}} \eta \; \kappa \footnotemark & =
+		\bbrackets{e} \eta \prths{\lambda \kappa'. \bbrackets{e'} \eta \; \kappa' \footnotemark}_{\textrm{cont}}
+	\end{align*}
+	\footnoteeqn[-2]{current continuation copied}
+	\footnoteeqn{ignored}
+	\footnoteeqn{continuation obtained from $e$ is used instead}
+	%
+	Intuitively, in
+	%
+	$\prths{\lcallcc \lambda \kappa . \cdots \lthrow{\kappa}{3} \cdots}$,
+	%
+	$\lcallcc \lambda \kappa$ can be viewed as putting a label denoted by $\kappa$,
+	and $\lthrow{\kappa}{3}$ can be understood as a \texttt{goto} to this label.
+	%
+	\item
+	%
+	What are the results of the following expressions?
+	%
+	\begin{enumrm}
+		%
+		\item
+		%
+		$\lcallcc \prths{\lambda \kappa . \; 2 + \lthrow{\kappa}{\prths{3 \times 4}}}$
+		%
+		\item
+		%
+		$\prths{\lcallcc \prths{\lambda \kappa .\; \lambda x .\; \lthrow{\kappa}{\prths{\lambda y .\; x + y}}}} 6$
+		%
+	\end{enumrm}
+	%
+	The first example can be understood as skipping some part of computation.
+	%
+	The second shows how we can repeat the computation of some part of an
+	expression using continuation.
+	%
+	\item
+	%
+	The next example is likely very hard to understand because it uses features not
+	explained so far, and it is also quite tricky.
+	%
+	The example is from the page 290 of the textbook.
+	%
+	Imagine that we would like to implement a routine \ul{backtrack} that takes a
+	function and tries the function with a parameter \ul{amb}\footnote{editor:
+		ambiguous} representing a nondeterministic choice between true and false.
+	%
+	It collects the results of all those choices and returns a list of all those
+	results.
+	%
+	For instance,
+	%
+	\[
+		\textrm{backtrack} \prths{
+			\lambda \textrm{amb} . \;
+			\begin{array}{l}
+				\textrm{if } \textrm{amb}\chevrons{}\footnotemark \textrm{ then } \prths{
+					\textrm{if } \textrm{amb}\chevrons{} \textrm{ then } 0 \textrm{ else } 1
+				} \\
+				\textrm{else } \prths{
+					\textrm{if } \textrm{amb}\chevrons{} \textrm{ then } 2 \textrm{ else } 3
+				}
+			\end{array}
+		}
+	\]
+	\footnoteeqn[0]{empty tuple}
+	%
+	should return
+	%
+	\[
+		@ \; 1 \chevrons{
+			3, \;
+			@ \; 1 \chevrons{
+				2, \;
+				@ \; 1 \chevrons{
+					1, \;
+					@ \; 1 \chevrons{
+						0, \;
+						@ \; 0 \chevrons{}
+					}
+				}
+			}
+		},
+	\]
+	%
+	which is often written as
+	%
+	\[
+		3 :: 2 :: 1 :: 0 :: \nil
+	\]
+	%
+	representing the list of 3, 2, 1, and 0.
+	%
+	Note that these are all the possible outcomes of the parameter function to
+	backtrack.
+	%
+	To implement backtrack with callcc and throw, we need a few more features in
+	our language.
+	%
+	\begin{center}
+		\begin{minipage}{0.8\textwidth}
+			\grammarindent=1.5cm
+			\begin{grammar}
+				<exp> ::= mkref <exp> \footnotemark
+				\alt val <exp> \footnotemark
+				\alt <exp> := <exp> \footnotemark
+				\alt <exp> =\textsubscript{ref} <exp> \footnotemark
+			\end{grammar}
+		\end{minipage}
+	\end{center}
+	\footnoteeqn[-3]{allocates a memory cell, initialized it with $\gram{exp}$ and returns the reference to the cell.}
+	\footnoteeqn{dereferences a reference}
+	\footnoteeqn{updates a reference}
+	\footnoteeqn{reference equality check}
+
+	\textbf{Syntactic sugar}.
+	%
+	\begin{align*}
+		\nil \;                                             & \defeq @ \; 0 \chevrons{}                                                     \\
+		e :: e'                                             & \defeq @ \; 1 \chevrons{e, e'}                                                \\
+		\textrm{listcase } e \textrm{ of } \prths{e_1, e_2} & \defeq
+		\textrm{sumcase } e \textrm{ of } \prths{\lambda v. e_1, \lambda v. \prths{\prths{e_2 v.0} v.1}}                                    \\
+		\textrm{let } v \equiv e \in e'                     & \defeq \prths{\lambda v . e'} e                                               \\
+		e ;\; e'                                            & \defeq \textrm{let } v \equiv e \textrm{ in } e' \qquad \textrm{for fresh } v \\
+	\end{align*}
+	%
+	\begin{align*}
+		\textrm{backtrack} \defeq \lambda f. \; & \textrm{let }\textit{rl} \equiv \textrm{mkref} \prths{\nil} \textrm{ in}                                                                                                                    \\
+		                                        & \textrm{let }\textit{cl} \equiv \textrm{mkref} \prths{\nil} \textrm{ in}                                                                                                                    \\
+		                                        & \textit{rl} := f\prths{\lambda u. \lcallcc \prths{\lambda k. \; \prths{\textit{cl} := k :: \textrm{val }\textit{cl}} ; \; \true}} :: \textrm{val }\textit{rl } ;                            \\
+		                                        & \textrm{listcase } \prths{\textrm{val }\textit{cl }} \textrm{ of } \prths{\textrm{val }\textit{rl}, \lambda c. \; \lambda r. \; \prths{\textit{cl} := r \;;\; \textrm{throw } c \; \false}} \\
+	\end{align*}
+	%
+	\textbf{Editor's note on the backtrack function}
+
+	The backtrack function is a bit tricky to understand, so the editor will try to
+	explain it.
+
+	\begin{enumrm}
+		%
+		\item
+		%
+		$\textit{rl}$ is a reference to a list of results, and $\textit{cl}$ is a reference to a list of continuations.
+		%
+		\item
+		%
+		$f$ is applied to a function that uses callcc (call with current continuation) to capture the current continuation $k$.
+		%
+		This continuation $k$ is added to the list of continuations $\textit{cl}$ along
+		with the value $\true$.
+		%
+		The continuation represents a choice in the computation.
+		%
+		If the function $f$ decides to backtrack, it can invoke one of these
+		continuations to return to the state represented by that continuation.
+		%
+		\item
+		%
+		After $f$ has been applied, the listcase operation examines the list of results
+		$\textit{rl}$.
+		%
+		If $\textit{cl}$ is empty, the listcase operation returns the list of results
+		$\textit{rl}$.
+		%
+		If there are any continuations in $\textit{cl}$, one is removed and invoked
+		(throw $c$ false) and its associated computation is resumed.
+		%
+		This effectively backtracks to the point where callcc captured that
+		continuation, and the computation tries a different path by returning false
+		instead of true.
+		%
+	\end{enumrm}
+
+\end{enumcirc}
+
+\section{Deriving a First-order Semantics}
+
+\ul{(Semantic version of defunctionalization)}
+
+\begin{enumcirc}
+	%
+	\item
+	%
+	The continuation semantics and the direct semantics both use functions so
+	heavily, sometimes even higher-order functions, i.e., functions that take
+	functions as parameters.
+	%
+	Can we define a semantics that avoids the use of such functions, or at least
+	minimizes the use of higher-order functions?
+
+	More concretely, recall the definitions of predomains and domains involved in
+	the continuation semantics:
+	%
+	\[
+		\begin{array}{c}
+			V_*                  =
+			\prths{V + \braces{\textrm{error}, \textrm{typeerror}}}_\bot                                                                    \\[1em]
+			V                    \lrsupsubarrow{\phi}{\psi}
+			\subsctext{V}{int} + \subsctext{V}{bool} + \subsctext{V}{fun} + \subsctext{V}{tuple} + \subsctext{V}{alt} + \subsctext{V}{cont} \\[1em]
+			\subsctext{V}{int}   =
+			\Z \qquad
+			\subsctext{V}{bool}  = \B \qquad
+			\subsctext{V}{fun}   = \brackets{V \toc \brackets{\subsctext{V}{cont} \toc V_*}}                                                \\[1em]
+			\subsctext{V}{tuple} = \bigcup_{n \ge 0} V^n \qquad \subsctext{V}{alt} = \N \times V \qquad \subsctext{V}{cont} = \brackets{V \toc V_*}
+		\end{array}
+	\]
+	%
+	If we substitute the definition of $\subsctext{V}{cont}$ in the definition of
+	$\subsctext{V}{fun}$, we get
+	%
+	\[
+		\subsctext{V}{fun} = \brackets{V \toc \brackets{V \toc V_*} \toc V_*}.
+	\]
+	%
+	So, elements in $\subsctext{V}{fun}$ are higher-order function.
+	%
+	We would like to have a semantics that avoids using such higher-order
+	functions.
+	%
+	Such a semantics is called \ul{first-order}.
+	%
+	\item
+	%
+	Before answering the question raised in \circled{1}, let me say a few words
+	about why we are interested in such a first-order semantics.
+	%
+	The first reason is a bit theoretical.
+	%
+	It is that defining such a first-order semantics involves solving much simpler
+	and easier recursive domain equations.
+	%
+	In our original continuation semantics, we assumed that $V$ is a solution of
+	the following recursive (pre)domain equation:
+	%
+	\[
+		V \simeq \prths{
+			\begin{array}{l}
+				\Z + \B                                  \\[0.5em]
+				+ \quad \brackets{
+					\begin{array}{r}
+						\dunderline{V} \toc \brackets{\underline{V} \toc \prths{\dunderline{V} + \textrm{error} + \textrm{typeerror}}_\bot} \\
+						\toc \prths{\underline{V} + \braces{\textrm{error}, \textrm{typeerror}}}_\bot
+					\end{array}
+				}                                        \\[2em]
+				+ \quad \bigcup_n^\infty \underline{V}^n \\[0.5em]
+				+ \quad \N \times \underline{V}          \\[0.5em]
+				+ \quad \brackets{\dunderline{V} \toc \prths{\underline{V} + \textrm{error} + \textrm{typeerror}}_\bot}
+			\end{array}
+		}
+	\]
+	%
+	Note that $V$ appears on the both sides of $\to$. The occurrences of $V$
+	underlined with two lines $\dunderline{V}$ make this recursive predomain
+	equation very difficult to solve.
+	%
+	We should use the categorical fixed point theorem and the category of domains
+	with embeddings (which we covered before) to solve this equation.
+	%
+	On the other hand, in the first-order semantics, we have a recursive predomain
+	equation that is much easier to solve.
+	%
+	It doesn't have those tricky recursive occurrences of $\hat{V}$ (a predomain
+	being defined) that appear on the left argument side of $\to$.
+
+	The second reason is that this first-order continuation semantics becomes a
+	theoretical basis or guide for a compiler for eager functional languages.
+	%
+	The situation is analogous to the CPS transformation that we looked at.
+	%
+	The transformation is derived from the continuation semantics.
+	%
+	Similarly, from the first-order semantics, we are able to derive a program (or
+	expression) transformation sometimes called defunctionalization, which gets rid
+	of all higher-order functions.
+	%
+	By the say, this kind of connection between (denotational) semantics and
+	compilation should not be too surprising.
+	%
+	In a sense, a denotational semantics is a compiler of programs into phrases in
+	mathematics.
+	%
+	If the compiler uses only very restricted phrases, the compiled phrases can be
+	understood as instruction sequences in a computer.
+	%
+	\item
+	%
+	Let's define the first-order semantics.
+	%
+	It is based on the observation that when we interpret an expression $e$ in the
+	continuation semantics, we do not use all functions, but specific kinds of
+	functions.
+	%
+	In a sense, the first-order semantics replaces $\subsctext{V}{fun}$,
+	$\subsctext{V}{cont}$, and $E = \supsctext{V}{var}$ by three sets
+	$\subsctext{\hat{V}}{fun}$, $\subsctext{\hat{V}}{cont}$, and $\hat{E}$, that
+	consist of mathematical instructions.
+	%
+	Then, it defines how to interpret those instructions.
+
+	We consider an eager functional language with integers and continuation values.
+	%
+	Here are predomains and domains used in the first-order semantics.
+	%
+	\[
+		\begin{array}{c}
+			\hat{V}_* = \prths{\hat{V} + \braces{\textrm{error}, \textrm{typeerror}}}_\bot \\[1em]
+			\hat{V} \lrsupsubarrow{\phi}{\psi} \subsctext{V}{int} + \subsctext{\hat{V}}{fun} + \subsctext{\hat{V}}{cont}
+			\qquad
+			\subsctext{V}{int} = \Z \qquad
+		\end{array}
+	\]
+
+	\[
+		\subsctext{\hat{V}}{fun} = \braces{\abstr} \times \gram{var} \times \gram{exp} \times \hat{E}
+	\]
+	%
+	$\subsctext{\hat{V}}{fun}$: typical element \dots $\chevrons{\abstr, v, e, \eta}$.
+	%
+	$\abstr$ indicates this tuple represents a lambda expression $\lambda v . e$
+	and an environment $\eta$ for the free variables in the expression.
+
+	\begin{align*}
+		\hat{E} = & \braces{\initenv}                                                                          \\
+		          & \cup \braces{\extend} \times \gram{var} \times \hat{V} \times \hat{E}                      \\
+		          & \cup \braces{\recenv} \times \hat{E} \times \gram{var} \times \gram{var} \times \gram{exp}
+	\end{align*}
+	%
+	$\initenv$ is the initial empty environment.
+	%
+	$\chevrons{\extend, v, z, \eta}$ is the environment obtained by extending
+	$\eta$ with the binding $v \mapsto z$.
+	%
+	$\chevrons{\recenv, \eta, u, v, e}$ is the environment obtained by extending
+	$\eta$ with the recursively defined $u$ (i.e., $u = \lambda v. e$).
+
+	\begin{align*}
+		\subsctext{\hat{V}}{cont} = & \braces{\negate} \times \subsctext{\hat{V}}{cont}                                                            \\
+		                            & \cup \braces{\addrm_1, \divrm_1, \mulrm_1} \times \gram{exp} \times \hat{E} \times \subsctext{\hat{V}}{cont} \\
+		                            & \cup \braces{\addrm_2, \divrm_2, \mulrm_2} \times \subsctext{V}{int} \times \subsctext{\hat{V}}{cont}        \\
+		                            & \cup \braces{\apprm_1} \times \gram{exp} \times \hat{E} \times \subsctext{\hat{V}}{cont}                     \\
+		                            & \cup \braces{\apprm_2} \times \subsctext{\hat{V}}{fun} \times \subsctext{\hat{V}}{cont}                      \\
+		                            & \cup \braces{\ccc} \times \subsctext{\hat{V}}{cont}                                                          \\
+		                            & \cup \braces{\thw} \times \gram{exp} \times \hat{E}                                                          \\
+		                            & \cup \braces{\initcont}
+	\end{align*}
+	%
+	$\negate$ negates its input and call the continuation.
+	%
+	The second and third cases are continuations for addition, division, and
+	multiplication.
+	%
+	The fourth and fifth cases are continuations for function application.
+	%
+	Others are continuations for callcc, throw, and the initial continuation.
+
+	Note that elements of $\subsctext{\hat{V}}{fun}, \subsctext{\hat{V}}{cont}$,
+	and $\hat{E}$ are not functions.
+	%
+	Rather they are like instructions that denote certain functions.
+	%
+	They are almost like programs.
+
+	The semantic function $\bbrackets{-}$ has a slightly more complex definition.
+	%
+	It is because the definition should now spell out how we can view elements of
+	$\subsctext{\hat{V}}{fun}, \subsctext{\hat{V}}{cont}$, and $\hat{E}$ as
+	appropriate functions.
+	%
+	We define three more functions:
+	%
+	\begin{align*}
+		\bbrackets{-} & \in \brackets{\gram{exp} \to \hat{E} \to \subsctext{\hat{V}}{cont} \to \hat{V}_*}                          \\
+		\contf        & \in \brackets{\subsctext{\hat{V}}{cont} \to \brackets{\hat{V} \to \hat{V}_*}}                              \\
+		\applyf       & \in \brackets{\subsctext{\hat{V}}{fun} \to \brackets{\hat{V} \to \subsctext{\hat{V}}{cont} \to \hat{V}_*}} \\
+		\getf         & \in \brackets{\hat{E} \to \brackets{\gram{var} \to \hat{V}}}
+	\end{align*}
+	%
+	Here cont, apply and get functions provide the meanings of elements (or records
+	or instructions) in $\subsctext{\hat{V}}{cont}$, $\subsctext{\hat{V}}{fun}$,
+	and $\hat{E}$.
+	%
+	Whenever we need to use those elements by, say, look-up and function
+	application, we use these three functions.
+	%
+	These three functions and $\bbrackets{-}$ are defined mutually recursively as
+	follows:
+	%
+	\[
+		\applyf \chevrons{\abstr, v, e, \eta} a \; \kappa =
+		\bbrackets{e} \chevrons{\extend, v, a, \eta} \kappa
+	\]
+	%
+	\[
+		\begin{array}{l}
+			\getf \chevrons{\initenv} \; v                = \psi \chevrons{0, 0} \quad \substack{(\textrm{initial value 0 assigned to } v)} \\
+			\getf \chevrons{\extend, v, a, \eta} \; w     = \textrm{if } v = w
+			\begin{cases}
+				\textrm{then } a \\
+				\textrm{else } \getf \; \eta \; w
+			\end{cases}                                                                                                \\
+			\getf \chevrons{\recenv, \eta, v, u, e} \; w                                                                                    \\
+			\;\qquad \qquad = \textrm{if } v = w
+			\begin{cases}
+				\textrm{then } \psi \chevrons{1, \chevrons{\abstr, u, e, \chevrons{\recenv, \eta, v, u, e}}} \\
+				\textrm{else } \getf \; \eta \; w
+			\end{cases}
+		\end{array}
+	\]
+	%
+	\[
+		\begin{array}{l}
+			\contf \chevrons{\negate, \kappa} \; a            = \prths{\lambda i. \; \contf \; \kappa \prths{ \psi \chevrons{0, -i} }}_{\textrm{int}} a         \\[1em]
+			\contf \chevrons{\addrm_1, e, \eta, \kappa} \; a  = \prths{\lambda i. \; \bbrackets{e} \eta \chevrons{ \addrm_2, i, \kappa } }_{\textrm{int}} a     \\[1em]
+			\contf \chevrons{\addrm_2, i, \kappa} \; a        = \prths{\lambda i'. \; \contf \; \kappa \prths{ \psi \chevrons{0, i + i'} } }_{\textrm{int}} a   \\[1em]
+			\contf \chevrons{\divrm_2, i, \kappa} \; a        = \prths{\lambda i'. \; \textrm{if } i' = 0
+				\begin{cases}
+					\textrm{then } \kappa \prths{ \psi \chevrons{1, \textrm{error}} } \\
+					\textrm{else } \contf \; \kappa \prths{ \psi \chevrons{0, i \div i'} }
+				\end{cases}
+			\!\!}_{\textrm{int}} a                                                                                                                              \\[1em]
+			\contf \chevrons{\apprm_1, e, \eta, \kappa} \; a  = \prths{\lambda f. \; \bbrackets{e} \eta \chevrons{ \apprm_2, f, \kappa } }_{\textrm{fun}} a     \\[1em]
+			\contf \chevrons{\apprm_2, f, \kappa} \; a        = \applyf \; f \; a \; \kappa                                                                     \\[1em]
+			\contf \chevrons{\ccc, \kappa} \; a               = \prths{\lambda f. \; \applyf \; f \prths{\psi \chevrons{2, \kappa}} \; \kappa}_{\textrm{fun}} a \\[1em]
+			\contf \chevrons{\thw, e, \eta} \; a               = \prths{\lambda \kappa'. \; \bbrackets{e} \eta \; \kappa'}_{\textrm{cont}} a                    \\[1em]
+			\contf \chevrons{\initcont} \; a                  = \psi \chevrons{0, a} \quad \substack{(\textrm{0th component of } \prths{V + \braces{\textrm{error}, \textrm{typeerror}}}_\bot)}
+		\end{array}
+	\]
+	%
+	$\chevrons{\mulrm_1, e, \eta, \kappa}$,
+	%
+	$\chevrons{\mulrm_2, i, \kappa}$ and
+	%
+	$\chevrons{\divrm_1, e, \eta, \kappa}$
+	%
+	are all interpreted similarly to \\
+	%
+	$\chevrons{\addrm_1, e, \eta, \kappa}$ and
+	%
+	$\chevrons{\addrm_2, i, \kappa}$.
+
+	\[
+		\begin{array}{l}
+			\bbrackets{n} \eta \; \kappa = \contf \; \kappa \prths{ \psi \chevrons{0, n} }                                           \\[1em]
+			\bbrackets{-e} \eta \; \kappa = \bbrackets{e} \eta \; \chevrons{\negate, \kappa}                                         \\[1em]
+			\bbrackets{e_0 + e_1} \eta \; \kappa = \bbrackets{e_0} \eta \; \chevrons{\addrm_1, e_1, \eta, \kappa}                    \\[1em]
+			\bbrackets{e_0 \div e_1} \eta \; \kappa = \bbrackets{e_0} \eta \; \chevrons{\divrm_1, e_1, \eta, \kappa}                 \\[1em]
+			\bbrackets{e_0 \times e_1} \eta \; \kappa = \bbrackets{e_0} \eta \; \chevrons{\mulrm_1, e_1, \eta, \kappa}               \\[1em]
+			\bbrackets{v} \eta \; \kappa = \contf \; \kappa \prths{ \getf \; \eta \; v }                                             \\[1em]
+			\bbrackets{e_0 \; e_1} \eta \; \kappa = \bbrackets{e_0} \eta \; \chevrons{\apprm_1, e_1, \eta, \kappa}                   \\[1em]
+			\bbrackets{\lambda v . e} \eta \; \kappa = \contf \; \kappa \prths{ \psi \chevrons{1, \chevrons{\abstr, v, e, \eta}} }   \\[1em]
+			\bbrackets{\lcallcc e} \eta \; \kappa = \bbrackets{e} \eta \; \chevrons{\ccc, \kappa}                                    \\[1em]
+			\bbrackets{\lthrow{e}{e'}} \eta \; \kappa = \bbrackets{e} \eta \; \chevrons{\thw, e', \eta}                              \\[1em]
+			\bbrackets{\textrm{error}} \eta \; \kappa = \chevrons{1, \textrm{error}}                                                 \\[1em]
+			\bbrackets{\textrm{typeerror}} \eta \; \kappa = \chevrons{1, \textrm{typeerror}}                                         \\[1em]
+			\bbrackets{\lletrec{v_0}{u_0}{e_0}{e_1}} \eta \; \kappa = \bbrackets{e_1} \chevrons{\recenv, \eta, v_0, u_0, e_0} \kappa \\[1em]
+		\end{array}
+	\]
+
+	Note that this recursive definition is well-defined because of the following
+	two reasons.
+	%
+	\begin{enumrm}
+		%
+		\item
+		%
+		$\getf$ is defined inductively\footnote{
+			all recursive calls in the definition of get are over sub-environments.
+		} and doesn't depend on $\bbrackets{-}$, $\applyf$ and $\contf$.
+		%
+		\item
+		%
+		Since $\hat{V}_*$ is a domain and the function space $\brackets{P \toc D}$ from
+		a predomain $P$ to a domain $D$ is a domain, all of
+		%
+		$D_1 = \brackets{\gram{exp} \to \hat{E} \to \subsctext{\hat{V}}{cont} \to \hat{V}_*}$,
+		%
+		$D_2 = \brackets{\subsctext{\hat{V}}{cont} \to \brackets{\hat{V} \to \hat{V}_*}}$ and
+		%
+		$D_3 = \brackets{\subsctext{\hat{V}}{fun} \to \brackets{\hat{V} \to \subsctext{\hat{V}}{cont} \to \hat{V}_*}}$
+		%
+		are domains.
+		%
+		$\bbrackets{-}$, $\contf$ and $\applyf$ can be understood as a fixed point (in fact, the least fixed point) of some continuous function
+		%
+		$F : D_1 \times D_2 \times D_3 \to D_1 \times D_2 \times D_3$.
+		%
+		This function $F$ is what the semantic definitions of $\bbrackets{-}$, $\contf$
+		and $\applyf$ determine.
+		%
+	\end{enumrm}
+	%
+	\item
+	%
+	Let me mention two further points.
+	%
+	First, the definition in the previous two pages doesn't use lambda in the
+	mathematical meta language in a sense.
+	%
+	Yes, you can see $\lambda$ there.
+	%
+	But those $\lambda$'s are mainly for enabling the use of $\prths{-}_\theta$
+	notation, which does runtime type checking.
+	%
+	We could have used the unpacked definition of $\prths{-}_\theta$ instead and
+	avoided $\lambda$ completely.
+
+	This lack of $\lambda$ confirms that the semantics is first-order.
+	%
+	Second, the predomain equation for $V$ can be solved in the category of sets,
+	i.e., without using domain theory.
+	%
+	That is, we can define a set $V$ s.t.
+	%
+	\[
+		V =\footnotemark \Z + \subsctext{V}{fun} + \subsctext{V}{cont}
+	\]
+	\footnoteeqn[0]{equality}
+	%
+	where $\subsctext{V}{fun}$ and $\subsctext{V}{cont}$ are defined as before.
+	%
+	\item
+	%
+	I tried to derive the program transformation from this first-order semantics.
+	%
+	But I couldn't find a simple way to do so.
+	%
+	Sorry guys.
+
+	Let me instead show you how one can derive a small-step evaluation relation (or
+	more commonly called small-step operational semantics) from the first-order
+	denotational semantics.
+	%
+	The idea is to replace $=$ by a single evaluation step $\to$.
+
+	\begin{align*}
+		\chevrons{n, \eta, \kappa}                                   & \to
+		\chevrons{\contf, \kappa, n}                                                                                                                 \\
+		\chevrons{-e, \eta, \kappa}                                  & \to
+		\chevrons{e, \eta, \chevrons{\negate, \kappa}}                                                                                               \\
+		\chevrons{e_0 \,\substack{+                                                                                                                  \\ \div \\ \times}\,e_1, \eta, \kappa} & \to
+		\chevrons{e_0, \eta, \chevrons{\substack{\addrm_1                                                                                            \\ \divrm_1 \\ \mulrm_1}, e_1, \eta, \kappa}} \\
+		\chevrons{v, \eta, \kappa}                                   & \to
+		\chevrons{\contf, \kappa, \prths{\getf \; \eta \; v}}                                                                                        \\
+		\chevrons{e_0 \; e_1, \eta, \kappa}                          & \to
+		\chevrons{e_0, \eta, \chevrons{\apprm_1, e_1, \eta, \kappa}}                                                                                 \\
+		\chevrons{\lambda v . e, \eta, \kappa}                       & \to
+		\chevrons{\contf, \kappa, \chevrons{\abstr, v, e, \eta}}                                                                                     \\
+		\chevrons{\lcallcc e, \eta, \kappa}                          & \to
+		\chevrons{e, \eta, \chevrons{\ccc, \kappa}}                                                                                                  \\
+		\chevrons{\lthrow{e}{e'}, \eta, \kappa}                      & \to
+		\chevrons{e, \eta, \chevrons{\thw, e', \eta}}                                                                                                \\
+		\chevrons{\lletrec{v_0}{u_0}{e_0}{e}, \eta, \kappa}          & \to
+		\chevrons{e, \chevrons{\recenv, \eta, v_0, u_0, e_0}, \kappa}                                                                                \\
+		\chevrons{\contf, \chevrons{\negate, \kappa}, a}             & \to
+		\chevrons{\kappa, \psi \chevrons{0, -a}} \quad (\textrm{if } a \in \Z)                                                                       \\
+		\chevrons{\contf, \chevrons{\addrm_1, e, \eta, \kappa}, a}   & \to
+		\chevrons{e, \eta, \chevrons{\addrm_2, a, \kappa}}                                                                                           \\
+		\chevrons{\contf, \chevrons{\addrm_2, a, \kappa}, b}         & \to
+		\chevrons{\contf, \kappa, a + b} \quad (\textrm{if } a, b \in \Z)                                                                            \\
+		                                                             & \substack{\mulrm_1,\; \mulrm_2 \textrm{ and } \divrm_1 \textrm{ are similar}} \\
+		\chevrons{\contf, \chevrons{\divrm_2, a, \kappa}, b}         & \to
+		\chevrons{\contf, \kappa, a \div b} \quad (\textrm{if } a, b \in \Z \textrm{ and } b \neq 0)                                                 \\
+		\chevrons{\contf, \chevrons{\apprm_1, e, \eta, \kappa}, a}   & \to
+		\chevrons{e, \eta, \chevrons{\apprm_2, a, \kappa}}                                                                                           \\
+		\chevrons{\contf, \chevrons{\apprm_2, a, \kappa}, b}         & \to
+		\chevrons{\applyf, a, b, \kappa} \quad (\textrm{if } a \in \subsctext{\hat{V}}{fun})                                                         \\
+		\chevrons{\contf, \chevrons{\ccc, \kappa}, a}                & \to
+		\chevrons{\applyf, a, \kappa, \kappa} \quad (\textrm{if } a \in \subsctext{\hat{V}}{fun})                                                    \\
+		\chevrons{\contf, \chevrons{\thw, e, \eta}, a}               & \to
+		\chevrons{e, \eta, a} \quad (\textrm{if } a \in \subsctext{\hat{V}}{cont})                                                                   \\
+		\chevrons{\contf, \chevrons{\initcont}, a}                   & \to
+		a                                                                                                                                            \\
+		\chevrons{\applyf, \chevrons{\abstr, v, e, \eta}, a, \kappa} & \to
+		\chevrons{e, \chevrons{\extend, v, a, \eta}, \kappa}                                                                                         \\
+	\end{align*}
+	%
+	We use definition of get for environments in $\hat{E}$.
+
+\end{enumcirc}
+
